@@ -59,6 +59,28 @@ def smoke_test():
             raise RuntimeError('Redaction retained source structure')
         check('pdf_compare', [source, numbered[0]], Options(dpi=72))
         check('pdf_forms', [source], Options(form_values=(('name', 'Smoke'),), flatten_forms=True, dpi=72))
+        filled = check('pdf_forms', [source], Options(form_values=(('name', 'Smoke'),)))
+        exported_form = check('pdf_png', filled, Options(dpi=72))
+        import pypdfium2 as pdfium
+        from .m2 import render
+        with pdfium.PdfDocument(str(filled[0])) as document:
+            document.init_forms()
+            expected, _ = render(document, 0, 72)
+        try:
+            with Image.open(exported_form[0]).convert('RGB') as actual:
+                if actual.tobytes() != expected.tobytes():
+                    raise RuntimeError('PDF image export lost form appearances')
+        finally:
+            expected.close()
+        fractional = root / 'fractional.pdf'
+        canvas = Canvas(str(fractional), pagesize=(100.01, 80.01))
+        canvas.setFillColorRGB(1, 0, 0)
+        canvas.rect(0, 0, 100.01, 80.01, stroke=0, fill=1)
+        canvas.showPage(); canvas.save()
+        erased = check('pdf_redact', [fractional], Options(dpi=36, redactions=((1, 98, 10, 1, 20),)))
+        with PdfReader(erased[0]).pages[0].images[0].image as embedded:
+            if embedded.getpixel((50, 8)) != (0, 0, 0):
+                raise RuntimeError('Fractional-page redaction left an overlapping pixel')
         check('pdf_compress', [source], Options())
         check('pdf_repair', [source], Options())
         archival = check('pdf_pdfa', [source], Options(dpi=144))

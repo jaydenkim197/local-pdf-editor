@@ -42,3 +42,7 @@ Considered Ghostscript: AGPL/commercial distribution introduces a material licen
 - [Apache PDFBox Preflight artifact](https://repo.maven.apache.org/maven2/org/apache/pdfbox/preflight-app/3.0.6/preflight-app-3.0.6.jar), downloaded over verified HTTPS; jar notices inspected. SHA-256 `99d1a0bb97b2f6dc92ec04a2788b21b5af135c36efb58f994f7b0a28238b7c9c`. Not tracked/shipped. Maven veraPDF paths were rate-limited; use actual Preflight rather than claim veraPDF results.
 
 No publisher Windows binary is adopted just because its engine source is permissive. If a future release bundles Tesseract, inspect the specific binary's dependencies/notices/source obligations first and provide the actual languages/font data and their licenses. Current source integration avoids redistributing an unreviewed Windows OCR binary.
+
+## Audit clarification — 2026-10-02
+
+Actual image-output probes found CMYK-to-RGB color shifts and pypdf replacement dropping optional-layer and ICC color-space information. Keep the existing engine decision: copy eligible direct DeviceRGB/DeviceGray/DeviceCMYK images without changing their color model, preserve image layer/rendering/document attributes after replacement, and leave calibrated/ICC color spaces unchanged. This narrows optional JPEG eligibility to a verified path; it adds no dependency or architecture. Three regression cases inspect native pixels, CMYK mode, hidden-layer visibility and embedded ICC objects. See [the audit](../verification-audit-2026-10-02.md).

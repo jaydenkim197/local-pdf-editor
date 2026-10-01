@@ -64,15 +64,24 @@ def compress_pdf(path, folder, opt, ctx):
                                 continue
                             seen.add(ref.idnum)
                             obj = ref.get_object()
-                            # Re-encoding masks, palette/bitonal images can alter transparency or line art.
-                            if '/SMask' in obj or '/Mask' in obj or item.image.mode not in ('RGB', 'L', 'CMYK'):
+                            # Keep calibrated/profiled/palette color spaces unchanged: extraction
+                            # does not provide a reliable color-managed re-encoding path.
+                            if ('/SMask' in obj or '/Mask' in obj or item.image.mode not in ('RGB', 'L', 'CMYK') or
+                                    obj.get('/ColorSpace') not in ('/DeviceRGB', '/DeviceGray', '/DeviceCMYK')):
                                 continue
-                            with rgb(item.image) as replacement:
+                            # Keep the source color model; CMYK→RGB would change print colors.
+                            with item.image.copy() as replacement:
                                 if opt.image_max_dimension:
                                     replacement.thumbnail((opt.image_max_dimension,) * 2, Image.Resampling.LANCZOS)
                                 item.replace(replacement, quality=opt.quality)
-                                if len(ref.get_object()._data) >= len(obj._data):
+                                encoded = ref.get_object()
+                                if len(encoded._data) >= len(obj._data):
                                     writer._objects[ref.idnum - 1] = obj
+                                else:
+                                    # JPEG changes encoding, not layer visibility or document semantics.
+                                    for key in ('/OC', '/Intent', '/Interpolate', '/Metadata', '/StructParent'):
+                                        if key in obj:
+                                            encoded[NameObject(key)] = obj.get(key)
                         finally:
                             original_image.close()
                             if item.image is not original_image: item.image.close()

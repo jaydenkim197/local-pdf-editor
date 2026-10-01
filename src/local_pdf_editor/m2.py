@@ -205,10 +205,12 @@ def write_raster_document(document, output, dpi, by_page, ctx, action='Redacting
             if total > 120_000_000:
                 raise ValueError("Redaction batch exceeds 120 megapixels. Lower DPI or split the document first.")
             draw = ImageDraw.Draw(image)
+            x_scale, y_scale = image.width / w, image.height / h
             for left, top, width, height in by_page.get(index, []):
-                # Outward rounding covers all source pixels touching the rectangle.
-                x0, y0 = math.floor(left * dpi / 72), math.floor(top * dpi / 72)
-                x1, y1 = math.ceil((left + width) * dpi / 72), math.ceil((top + height) * dpi / 72)
+                # Rounded bitmap dimensions determine the pixels' actual page footprints.
+                # Round outward independently on each axis, including fractional page sizes.
+                x0, y0 = math.floor(left * x_scale), math.floor(top * y_scale)
+                x1, y1 = math.ceil((left + width) * x_scale), math.ceil((top + height) * y_scale)
                 draw.rectangle((x0, y0, min(x1, image.width) - 1, min(y1, image.height) - 1), fill='black')
             canvas.setPageSize((w, h))
             canvas.drawImage(ImageReader(image), 0, 0, width=w, height=h)

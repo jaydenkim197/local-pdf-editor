@@ -65,6 +65,36 @@ def test_pdf_render_and_multiple_inputs(tmp_path, tool, format):
             image.load()
 
 
+@pytest.mark.parametrize('tool', ['pdf_png', 'pdf_jpeg'])
+def test_pdf_image_export_includes_filled_form_appearances(tmp_path, tool):
+    from reportlab.pdfgen.canvas import Canvas
+    from PIL import ImageChops, ImageStat
+    import pypdfium2 as pdfium
+
+    source = tmp_path / 'form.pdf'
+    canvas = Canvas(str(source), pagesize=(300, 180))
+    canvas.acroForm.textfield(name='name', value='VISIBLE FIELD', x=20, y=100, width=160, height=30)
+    canvas.acroForm.checkbox(name='checked', checked=True, x=20, y=50)
+    canvas.showPage(); canvas.save()
+    output = run(tool, [source], tmp_path, Options(dpi=72, quality=100))[0]
+    with pdfium.PdfDocument(str(source)) as document:
+        document.init_forms()
+        page = document[0]
+        try:
+            bitmap = page.render(scale=1, draw_annots=True)
+            try:
+                expected = bitmap.to_pil().convert('RGB')
+            finally:
+                bitmap.close()
+        finally:
+            page.close()
+    try:
+        with Image.open(output).convert('RGB') as actual, ImageChops.difference(actual, expected) as difference:
+            assert sum(ImageStat.Stat(difference).mean) / 3 < 1
+    finally:
+        expected.close()
+
+
 def test_images_pdf_order_and_content(tmp_path):
     paths = []
     for i, (size, color) in enumerate([((32, 24), 'red'), ((48, 36), 'blue')]):

@@ -204,6 +204,7 @@ def render_pdf(path: Path, folder: Path, opt: Options, ctx: Context, format: str
         reader = read_pdf(stack, path)
         selected = parse_pages(opt.pages, len(reader.pages))
     with pdfium.PdfDocument(str(path)) as document:
+        document.init_forms()
         for index, number in enumerate(selected):
             ctx.check()
             page = document[number]
@@ -211,7 +212,7 @@ def render_pdf(path: Path, folder: Path, opt: Options, ctx: Context, format: str
                 w, h = page.get_size()
                 if math.ceil(w * opt.dpi / 72) * math.ceil(h * opt.dpi / 72) > MAX_PIXELS:
                     raise ValueError("Rendered page exceeds the 40 megapixel limit. Lower the DPI.")
-                bitmap = page.render(scale=opt.dpi / 72)
+                bitmap = page.render(scale=opt.dpi / 72, draw_annots=True)
                 try:
                     image = bitmap.to_pil()
                     converted = rgb(image)

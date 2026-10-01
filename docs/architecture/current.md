@@ -37,7 +37,7 @@ No server, database, account, telemetry, upload, or plugin system exists. The de
 
 M2 processors share the existing Context/Result and collision-safe output layer; no alternate service, shell or plugin architecture was introduced. ReportLab supplies text/image overlays, standard fonts and fresh lossless raster PDFs. pypdf uses cryptography for AES-256.
 
-Secure redaction renders **every** visible page, erases chosen pixels with outward rounding, then writes only those images into a new PDF. Source dictionaries/streams/metadata are not cloned. Form flattening first fills an in-memory copy, renders appearances including check/radio widgets, then uses the same source-free image writer. Both lose original selectable text, vectors and interactive structure and obey the render/aggregate bounds.
+Secure redaction renders **every** visible page, maps regions using the actual bitmap width/height divided by the visible page dimensions, erases touching pixels with outward rounding, then writes only those images into a new PDF. Independent axis scales account for fractional page sizes and rounded render dimensions. Source dictionaries/streams/metadata are not cloned. Form flattening first fills an in-memory copy, renders appearances including check/radio widgets, then uses the same source-free image writer. M1 PDF image exports also initialize the PDFium form environment before rendering. Both raster document operations lose original selectable text, vectors and interactive structure and obey the render/aggregate bounds.
 
 Editable forms use an inspected field schema, inherited flags/limits and pypdf appearance updates. Unsupported/read-only edits fail. Text edits are bounded to ASCII to avoid silently missing glyphs in existing form fonts. Comparison emits page-index PNG highlights plus a JSON summary, sharing partial-result/cancellation behavior.
 
@@ -45,7 +45,7 @@ See [ADR-0002](../decisions/ADR-0002-m2-pdf-operations.md); these additions leav
 
 ## M3 Local Engines
 
-M3 keeps Context/Result and per-file batch progress/errors. Compression clones document structures, compresses streams and deduplicates objects, optionally replaces eligible images after pre-decode size checks. Repair uses pypdf's forgiving parser, then strict-reopens and renders every generated page before committing output.
+M3 keeps Context/Result and per-file batch progress/errors. Compression clones document structures, compresses streams and deduplicates objects, optionally replaces eligible direct DeviceRGB/DeviceGray/DeviceCMYK images after pre-decode size checks. Replacements keep the original color model and layer visibility/rendering/document attributes; calibrated/ICC/palette color spaces and masks/transparency are left unchanged. Repair uses pypdf's forgiving parser, then strict-reopens and renders every generated page before committing output.
 
 PDF/A composes the existing source-free raster writer with a new PDF 1.4 writer: strips empty ReportLab text blocks/unused fonts, embeds the licensed ICC v2 profile and output intent, writes XMP/identifiers. Only fresh opaque image pages enter this step. Independent Preflight validates representative PDF/A-1b specimens; native rendering alone is not conformance evidence.
 

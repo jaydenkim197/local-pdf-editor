@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02 (Asia/Seoul)
 
 ## Current Goal
 
@@ -63,8 +63,9 @@ VERIFIED below means observed Linux Cloud results only; Windows runtime remains 
 ## Evidence and Decisions
 
 - Original baseline skills preserved; repository-local paths checked.
-- 143 tests passed: 101 previous cases plus 35 M3 processor and 7 M3 GUI cases. All 28 tools exercised through the shared GUI. Four PDF/A specimens passed real Apache PDFBox Preflight 3.0.6 validation; an ordinary source PDF was correctly rejected.
+- 151 tests passed: the 143 milestone cases plus 8 audit regressions. All 28 tools exercised through the shared GUI. Four PDF/A specimens passed real Apache PDFBox Preflight 3.0.6 validation. The earlier ordinary-source negative control was correctly rejected.
 - Linux onedir build and bundled M1/M2/M3 PDF/image/HEIC/AES/form/HTML/ICC/Qt smoke including real installed Tesseract OCR passed.
+- [2026-10-02 requirements audit](verification-audit-2026-10-02.md) reproduced and corrected fractional-page redaction edge pixels, missing form appearances in PDF image exports, and optional compression's CMYK/color-profile/layer changes. Fresh source/frozen smoke includes the redaction and form-export regressions.
 - English/Korean `eng+kor` OCR sample passed with explicit Unicode data folder and official locally installed data; sample evidence, not a general accuracy guarantee.
 - Windows x64 Python 3.12 dependency wheels, including M2 additions, downloaded but not executed.
 - [ADR-0001](decisions/ADR-0001-m1-stack.md): Python 3.12, Qt Widgets, pypdf/PDFium, Pillow, decoder-only pi-heif, pytest, PyInstaller onedir.
@@ -79,6 +80,7 @@ VERIFIED below means observed Linux Cloud results only; Windows runtime remains 
 - Primary 8-bit HEIC output, cooperative cancellation, bounded large buffers; see product-spec.md.
 - Linux bundle and Windows wheel availability do not prove Windows runtime compatibility.
 - Secure redaction and form flattening discard all text search/vector/interactivity; only explicitly marked visible regions are erased. Crop is not security deletion; signatures are image insertion, not certificate signing.
+- Redactions made before the audit fix can retain edge pixels on fractional page sizes. Regenerate affected outputs from originals with this revision and inspect marked boundaries before sharing.
 - Forms support standard text (ASCII edits), check/radio and single-choice fields, not XFA or all possible PDF form behavior. Comparison is visual by page index, not semantic matching.
 - Git push and Cloud environment publication are separate.
 - OCR needs installed engine/languages/pdf.ttf and recognition review; the package is not self-contained for OCR. Repair cannot recover missing bytes. Compression may increase size; optional image compression is lossy. PDF/A rasterizes to PDF/A-1b and loses text/vector/interactivity. HTML supports basic Qt rich text, not JavaScript/external CSS/browser fidelity.

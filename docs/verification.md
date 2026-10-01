@@ -1,5 +1,11 @@
 # Verification Evidence
 
+## Requirements Audit — 2026-10-02 (Asia/Seoul)
+
+Full report: [verification-audit-2026-10-02.md](verification-audit-2026-10-02.md). Starting main was clean and matched origin. All 143 earlier cases passed, but additional probes reproduced five defects: fractional-page redaction edge pixels, missing filled-form image exports, and optional compression changing CMYK colors, hidden-layer visibility and ICC color interpretation. Fixed all five with eight added regression cases using existing dependencies.
+
+Final observed checks: **151 passed, 0 errors/failures/skips** with all four independent Preflight specimens enabled; dependency consistency, compilation, whitespace, fresh Linux build and source/frozen HEIC/AES/form/redaction/PDF-A/HTML/OCR smoke passed. Frozen trace showed no printer-service or remote document traffic in the tested sample. Actual Windows execution/CI results and public-release compliance remain unverified. Earlier redacted outputs on fractional page sizes need regeneration and boundary inspection; see the report. Historical milestone counts below are retained as evidence of those checkpoints.
+
 ## Executed in Linux Cloud — 2026-10-01
 
 | Check | Observed result |
@@ -23,7 +29,7 @@ Clone main on Windows x64 with Python 3.12; follow README installation commands.
 1. Run `.venv\Scripts\python.exe -m pytest -q`; record platform, versions, count/results.
 2. Run `.venv\Scripts\python.exe -m local_pdf_editor`. Confirm startup, cards at 100%/150% scaling, keyboard navigation, dialogs and Explorer drop with Unicode paths.
 3. Use real multi-page PDFs: merge reversed inputs, split selected pages, reorder all pages, delete, import a range and rotate. Reopen in an independent Windows viewer; confirm count/order/rotation and unchanged originals.
-4. Export JPEG/PNG and import images to PDF; check dimensions/visual content. Corrupt/encrypted inputs must show useful errors without incomplete output.
+4. Export JPEG/PNG and import images to PDF; check dimensions/visual content, including filled text/check/radio form appearances. Corrupt/encrypted inputs must show useful errors without incomplete output.
 5. Convert an iPhone HEIC and fixture; convert JPEG/PNG; resize batches at all presets/custom %, aspect-preserving box and stretched dimensions. Check dimensions and EXIF-rotated photo orientation.
 6. Re-run into a populated folder; confirm no overwrite. Cancel/close during jobs; completed outputs remain and incomplete output/temp files are cleaned after normal cancellation. Confirm output folder choice and Open output/folder work.
 7. Build `.venv\Scripts\python.exe scripts\package_app.py`; run `dist\LocalPdfUtilities\LocalPdfUtilities.exe --smoke-test --heic-fixture tests\fixtures\sample.heic`. Copy the entire onedir folder to a clean Windows machine without Python and repeat PDF rendering/HEIC conversion offline. Verify Qt plugin and codec DLL discovery.
@@ -68,7 +74,7 @@ M2 diagnostics corrected during verification: pypdf's writer context entry reset
 1. Re-run the full suite on Windows, then source GUI and packaged smoke with all M2 additions. Verify bundled Vera font, optional Korean TTF, AES provider and PDFium/Qt DLL loading.
 2. Exercise crop/overlays on landscape, rotated and previously cropped PDFs. Independently confirm crop bounds, watermark opacity, sequential numbers and visible signature placement.
 3. Protect with an explicit password and reopen in an independent Windows viewer. Wrong password must fail; removing protection with the correct user/owner password must yield an unencrypted readable copy. Originals must remain unchanged.
-4. Mark redaction regions across pages, including text/images and form content. Inspect outputs visually and with an independent text/object extraction tool: removed text must be unselectable, metadata/attachments/forms absent, and selected pixels erased. Check fractional edges, DPI and input replacement before sharing real sensitive files.
+4. Mark redaction regions across pages, including text/images and form content. Inspect outputs visually and with an independent text/object extraction tool: removed text must be unselectable, metadata/attachments/forms absent, and selected pixels erased. Check fractional page sizes/region edges at low/high DPI, rotated pages and input replacement before sharing real sensitive files. Include the audit's 100.01 × 80.01 point edge specimen; recreate affected outputs made before the audit fix.
 5. Compare identical/changed/differently sized/missing-page PDFs and inspect report/highlights. Fill representative standard AcroForms, reopen editable values and flattened appearances in an independent viewer. Record unsupported XFA/Unicode/multi-select limits accurately.
 
 These checks and actual Windows CI results have not been observed in this Cloud machine. At the M2 checkpoint no M3 verification had been performed; the later M3 evidence follows.
@@ -110,7 +116,7 @@ Cloud setup retains the independently checksum-verified Preflight jar in ignored
 
 1. Install Tesseract 5/English/Korean/pdf.ttf, check executable/`--list-langs`, run full pytest/source/frozen `--ocr-smoke`. Inspect DLL/data discovery with spaces/Unicode paths and explicit tessdata. Without an engine, other tools must work and OCR must show an actionable error.
 2. Copy the package to a clean machine without Python and disconnect networking. With local OCR prerequisites, process English/Korean scans, review text accuracy, dimensions/multipage output, progress, child cancel and timeout.
-3. Compress text/form/photo/transparent PDFs, compare sizes/text/forms/visual detail and unchanged originals in an independent viewer. Already optimized files need not shrink. Repair real broken cross-references; missing content is not recoverable.
+3. Compress text/form/photo/transparent/CMYK/ICC/hidden-layer PDFs, compare sizes/text/forms/colors/layer visibility and unchanged originals in an independent viewer. ICC/calibrated images must retain their original interpretation. Already optimized files need not shrink. Repair real broken cross-references; missing content is not recoverable.
 4. Convert rotated/cropped/form/encrypted/color documents to PDF/A-1b, inspect visuals and run independent Preflight/another validator. Confirm bundled ICC, unencrypted output and removed source interactive structures. No PDF/A-1a/2/3/accessibility claim.
 5. Print local UTF-8 Korean/English HTML with images/tables/multiple pages. Confirm fonts/A4/margins, no printer-service/network request, blocked-resource errors and native Qt behavior. Modern web/CSS/JS fidelity is outside scope.
 6. Inspect Windows CI results when available; CI commands are provided but no run result was observed. Complete earlier LGPL/HEIC/crypto/app-license public release review before distributing binaries; this package does not bundle Tesseract native binaries/models.

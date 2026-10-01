@@ -10,7 +10,7 @@ import pypdfium2 as pdfium
 import pytest
 from PIL import Image, ImageChops, ImageStat
 from pypdf import PdfReader, PdfWriter
-from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject, NumberObject
+from pypdf.generic import ArrayObject, DecodedStreamObject, DictionaryObject, NameObject, NumberObject, TextStringObject
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 
@@ -79,6 +79,59 @@ def test_lossy_compression_preserves_transparency(tmp_path):
     output = job('pdf_compress', [source], tmp_path, Options(compress_images=True))
     with pixels(source) as left, pixels(output) as right:
         assert ImageChops.difference(left, right).getbbox() is None
+
+
+def test_lossy_compression_preserves_cmyk_color_space(tmp_path):
+    source = tmp_path / 'cmyk.pdf'
+    with Image.effect_noise((800, 600), 60).convert('CMYK') as image:
+        canvas = Canvas(str(source), pagesize=(400, 300))
+        canvas.drawImage(ImageReader(image), 0, 0, width=400, height=300)
+        canvas.showPage(); canvas.save()
+    output = job('pdf_compress', [source], tmp_path, Options(compress_images=True, quality=90, image_max_dimension=0))
+    assert PdfReader(output).pages[0].images[0].image.mode == 'CMYK'
+    with pixels(source) as left, pixels(output) as right, ImageChops.difference(left, right) as difference:
+        assert sum(ImageStat.Stat(difference).mean) / 3 < 3
+    assert output.stat().st_size < source.stat().st_size
+
+
+@pytest.mark.parametrize('protected', ['hidden-layer', 'icc-profile'])
+def test_image_compression_preserves_layers_and_color_profiles(tmp_path, protected):
+    base = tmp_path / 'base.pdf'
+    with Image.effect_noise((800, 600), 60).convert('RGB') as image:
+        canvas = Canvas(str(base), pagesize=(400, 300))
+        canvas.drawImage(ImageReader(image), 0, 0, width=400, height=300)
+        canvas.showPage(); canvas.save()
+    source = tmp_path / 'protected-image.pdf'
+    with PdfWriter() as writer:
+        writer.clone_document_from_reader(PdfReader(base))
+        obj = writer.pages[0].images[0].indirect_reference.get_object()
+        if protected == 'hidden-layer':
+            group = writer._add_object(DictionaryObject({NameObject('/Type'): NameObject('/OCG'),
+                                                         NameObject('/Name'): TextStringObject('Hidden photo')}))
+            obj[NameObject('/OC')] = group
+            writer.root_object[NameObject('/OCProperties')] = DictionaryObject({
+                NameObject('/OCGs'): ArrayObject([group]), NameObject('/D'): DictionaryObject({
+                    NameObject('/BaseState'): NameObject('/OFF'), NameObject('/OFF'): ArrayObject([group])})})
+        else:
+            from local_pdf_editor import m3
+            profile = DecodedStreamObject()
+            profile.set_data((Path(m3.__file__).parent / 'assets' / 'sRGB.icc').read_bytes())
+            profile[NameObject('/N')] = NumberObject(3)
+            obj[NameObject('/ColorSpace')] = ArrayObject([NameObject('/ICCBased'), writer._add_object(profile)])
+        writer.write(source)
+    output = job('pdf_compress', [source], tmp_path, Options(compress_images=True, quality=90, image_max_dimension=0))
+    old = PdfReader(source).pages[0].images[0].indirect_reference.get_object()
+    new = PdfReader(output).pages[0].images[0].indirect_reference.get_object()
+    if protected == 'hidden-layer':
+        assert new['/OC']['/Name'] == 'Hidden photo'
+        with pixels(source) as left, pixels(output) as right:
+            assert ImageChops.difference(left, right).getbbox() is None
+    else:
+        assert new['/ColorSpace'][0] == '/ICCBased'
+        assert new['/ColorSpace'][1].get_data() == old['/ColorSpace'][1].get_data()
+        assert new.get_data() == old.get_data()
+        with pixels(source) as left, pixels(output) as right:
+            assert ImageChops.difference(left, right).getbbox() is None
 
 
 def test_compression_rejects_oversized_image_before_decode(tmp_path):

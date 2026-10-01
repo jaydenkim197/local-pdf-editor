@@ -172,6 +172,38 @@ def test_redaction_rotated_cropped_and_fractional_rectangles(tmp_path):
         assert image.getpixel((25, 37)) == (0, 0, 0)
 
 
+@pytest.mark.parametrize('dpi,rotation', [(36, 0), (144, 0), (36, 90)])
+def test_redaction_covers_all_pixel_footprints_on_fractional_pages(tmp_path, dpi, rotation):
+    source = tmp_path / 'fractional.pdf'
+    canvas = Canvas(str(source), pagesize=(100.01, 80.01))
+    canvas.setFillColorRGB(1, 0, 0)
+    canvas.rect(0, 0, 100.01, 80.01, stroke=0, fill=1)
+    canvas.showPage(); canvas.save()
+    if rotation:
+        rotated = tmp_path / 'rotated-fractional.pdf'
+        with PdfWriter() as writer:
+            writer.clone_document_from_reader(PdfReader(source))
+            writer.pages[0].rotate(rotation)
+            writer.write(rotated)
+        source = rotated
+    original = source.read_bytes()
+    width, height = (80.01, 100.01) if rotation else (100.01, 80.01)
+    left, top, region_width, region_height = width - 2.01, 10, 1, 20
+    output = result('pdf_redact', [source], tmp_path,
+                    Options(dpi=dpi, redactions=((1, left, top, region_width, region_height),)))[0]
+    with PdfReader(output).pages[0].images[0].image.convert('RGB') as image:
+        covered = 0
+        for y in range(image.height):
+            for x in range(image.width):
+                # Test each embedded pixel's physical footprint on the output page.
+                if ((x + 1) * width / image.width > left and x * width / image.width < left + region_width and
+                        (y + 1) * height / image.height > top and y * height / image.height < top + region_height):
+                    assert image.getpixel((x, y)) == (0, 0, 0), (dpi, rotation, x, y)
+                    covered += 1
+        assert covered and image.getpixel((0, 0)) == (255, 0, 0)
+    assert source.read_bytes() == original
+
+
 def test_compare_identical_changed_size_and_missing_pages(tmp_path):
     a = document(tmp_path / 'a.pdf')
     b = document(tmp_path / 'b.pdf', text='DIFFERENT')
