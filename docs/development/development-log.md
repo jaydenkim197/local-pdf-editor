@@ -15,3 +15,11 @@
 
 ### Next
 Define the PDF editor MVP and target platform before selecting dependencies.
+
+## 2026-10-01 — M1 foundation
+
+- Recorded the full M1 scope and excluded features in product-spec.md.
+- Selected Python/Qt Widgets, pypdf/PDFium, Pillow, decoder-only pi-heif, pytest and PyInstaller in ADR-0001.
+- Installed pinned wheels and the editable project; checked dependency consistency and offscreen Qt startup.
+- Official documentation websites returned proxy 403; research used publisher wheel metadata, license files and runtime probes.
+- Windows runtime remains unverified. Next: processors and shared UI.
