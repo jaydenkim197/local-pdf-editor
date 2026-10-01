@@ -4,6 +4,7 @@ permissions:
   contents: read
 jobs:
   verify:
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -25,7 +26,19 @@ jobs:
           "C:\Program Files\Tesseract-OCR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m pip install --no-build-isolation --no-deps -e .
-      - run: python -m pytest -q
+      - name: Run full source suite
+        run: python -m pytest -q --junitxml=reports/pytest.xml
+      - name: Record actual test results
+        if: always()
+        run: python scripts/report_ci_results.py reports/pytest.xml
+      - name: Retain test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-${{ runner.os }}-${{ github.sha }}
+          path: reports/pytest.xml
+          if-no-files-found: warn
+          retention-days: 14
       - run: python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic --ocr-smoke
       - if: runner.os == 'Windows'
         run: python scripts/package_app.py
@@ -34,3 +47,22 @@ jobs:
         run: |
           $process = Start-Process -FilePath "dist/LocalPdfUtilities/LocalPdfUtilities.exe" -ArgumentList "--smoke-test", "--heic-fixture", "tests/fixtures/sample.heic", "--ocr-smoke" -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "Packaged smoke failed: $($process.ExitCode)" }
+      - name: Prepare Windows development package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/LocalPdfUtilities -DestinationPath dist/LocalPdfUtilities-Windows-x64.zip
+          $hash = (Get-FileHash dist/LocalPdfUtilities-Windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  LocalPdfUtilities-Windows-x64.zip" | Set-Content dist/LocalPdfUtilities-Windows-x64.sha256 -Encoding ascii
+          "## Windows development package`n`nSource tests and packaged smoke passed for $env:GITHUB_SHA. Download the Windows artifact, extract its ZIP and run LocalPdfUtilities/LocalPdfUtilities.exe. OCR still requires local Tesseract. Actual desktop/clean-machine and public-release checks remain pending.`n`nSHA-256: $hash" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+      - name: Retain verified Windows development package
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalPdfUtilities-Windows-x64-${{ github.sha }}
+          path: |
+            dist/LocalPdfUtilities-Windows-x64.zip
+            dist/LocalPdfUtilities-Windows-x64.sha256
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
