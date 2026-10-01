@@ -51,7 +51,7 @@ def make_pdf(path):
 
 
 def test_cards_categories_and_shared_workspace(window, app):
-    window.category.setCurrentText('PDF Optimization')
+    window.category.setCurrentText('Workflow')
     assert window.empty.isVisible()
     assert all(not card.isVisible() for _, card in window.card_widgets)
     window.category.setCurrentText('All')

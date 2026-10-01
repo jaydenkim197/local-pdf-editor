@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "local-pdf-editor"
-version = "0.2.0"
+version = "0.3.0"
 description = "Offline Windows-first PDF and image utilities"
 requires-python = ">=3.12,<3.13"
 dependencies = [
@@ -17,6 +17,9 @@ local-pdf-editor = "local_pdf_editor.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+local_pdf_editor = ["assets/*.icc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

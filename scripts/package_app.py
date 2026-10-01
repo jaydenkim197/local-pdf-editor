@@ -34,6 +34,8 @@ def collect_notices(folder: Path):
         if source.is_file():
             shutil.copyfile(source, folder / source.name)
     shutil.copyfile(ROOT / 'docs' / 'decisions' / 'ADR-0001-m1-stack.md', folder / 'DEPENDENCY-DECISION.md')
+    for source in (ROOT / 'docs' / 'decisions').glob('ADR-*.md'):
+        shutil.copyfile(source, folder / source.name)
     (folder / 'versions.json').write_text(json.dumps(versions, indent=2), encoding='utf-8')
 
 
@@ -49,6 +51,7 @@ def main():
                '--specpath', str(ROOT / 'build'), '--distpath', str(ROOT / 'dist'),
                '--workpath', str(ROOT / 'build' / 'pyinstaller'),
                '--collect-all', 'pi_heif', '--collect-all', 'pypdfium2', '--collect-data', 'reportlab',
+               '--collect-data', 'local_pdf_editor',
                '--exclude-module', 'pytest', '--exclude-module', 'PySide6.QtNetwork']
     if sys.platform == 'win32':
         command.append('--windowed')
@@ -61,6 +64,10 @@ def main():
     command.append(str(ROOT / 'scripts' / 'entrypoint.py'))
     subprocess.run(command, cwd=ROOT, check=True)
     collect_notices(ROOT / 'dist' / name / 'THIRD_PARTY_NOTICES')
+    guide = (ROOT / 'docs' / 'm3-engines.md').read_text(encoding='utf-8')
+    guide = guide.replace('](decisions/', '](THIRD_PARTY_NOTICES/').replace('](verification.md)',
+                          '](https://github.com/jaydenkim197/local-pdf-editor/blob/main/docs/verification.md)')
+    (ROOT / 'dist' / name / 'LOCAL-ENGINES.md').write_text(guide, encoding='utf-8')
     print(f'Built {ROOT / "dist" / name}. Distribution compliance and Windows runtime checks are still required.')
 
 

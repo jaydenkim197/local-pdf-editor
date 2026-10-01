@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 from .processing import Result, open_image, read_pdf, run_job
-from .tools import CATEGORIES, M2_IDS, Options, TOOLS, TOOL_BY_ID
+from .tools import CATEGORIES, M2_IDS, M3_IDS, Options, TOOLS, TOOL_BY_ID
 from .m2 import inspect_forms, parse_redactions
 from contextlib import ExitStack
 
@@ -302,6 +302,29 @@ class Window(QMainWindow):
         self.threshold.setRange(0, 255)
         self.threshold.setValue(8)
         self.flatten = QCheckBox('Flatten to images — text and interactive fields are lost')
+        self.compress_images = QCheckBox('Re-encode opaque images as JPEG (lossy)')
+        self.compress_images.toggled.connect(self.show_options)
+        self.image_max_dimension = QSpinBox()
+        self.image_max_dimension.setRange(0, 40000)
+        self.image_max_dimension.setSpecialValueText('Keep dimensions')
+        self.image_max_dimension.setValue(2000)
+        self.tesseract_path, self.tessdata_path = QLineEdit(), QLineEdit()
+        self.tesseract_path.setPlaceholderText('Auto-detect installed Tesseract 5')
+        self.tessdata_path.setPlaceholderText('Use the engine’s installed language data')
+        self.ocr_language = QLineEdit('eng')
+        self.ocr_language.setPlaceholderText('Installed language codes: eng or eng+kor')
+        self.ocr_psm = QComboBox()
+        for label, value in [('Automatic layout', 3), ('One text block', 6), ('Sparse text', 11)]:
+            self.ocr_psm.addItem(label, value)
+        tesseract_row = self.path_picker(self.tesseract_path, 'Choose engine…', 'Tesseract executable (*)')
+        data_row = QWidget()
+        data_layout = QHBoxLayout(data_row)
+        data_layout.setContentsMargins(0, 0, 0, 0)
+        data_layout.addWidget(self.tessdata_path)
+        def choose_data():
+            chosen = QFileDialog.getExistingDirectory(self, 'Installed tessdata folder', self.tessdata_path.text())
+            if chosen: self.tessdata_path.setText(chosen)
+        data_layout.addWidget(button('Choose data…', choose_data))
         self.form_table = QTableWidget(0, 3)
         self.form_table.setHorizontalHeaderLabels(['Field', 'Type', 'Value'])
         self.form_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -331,6 +354,10 @@ class Window(QMainWindow):
             ('redactions', 'Redactions: page:left,top,width,height', self.redactions),
             ('threshold', 'Visual difference threshold (0–255)', self.threshold),
             ('forms', 'AcroForm fields', forms), ('flatten', 'Form output', self.flatten),
+            ('compress_images', 'Image compression', self.compress_images),
+            ('image_max_dimension', 'Maximum image dimension (px)', self.image_max_dimension),
+            ('tesseract', 'Local OCR engine', tesseract_row), ('tessdata', 'Local OCR data', data_row),
+            ('ocr_language', 'OCR languages', self.ocr_language), ('ocr_psm', 'OCR page layout', self.ocr_psm),
         ]:
             label_widget = QLabel(label)
             form.addRow(label_widget, widget)
@@ -406,6 +433,12 @@ class Window(QMainWindow):
             note += ' Select a page and drag a region, or enter point coordinates.'
         if tool_id == 'pdf_forms':
             note += ' Standard text/check/radio/single-choice fields; form text supports ASCII. XFA is unsupported.'
+        if tool_id in M3_IDS and tool_id != 'html_pdf':
+            note += ' Encrypted inputs require the correct password; outputs are unencrypted copies.'
+        if tool_id in ('pdf_ocr', 'pdf_pdfa'):
+            note += ' All pages become images; original forms, vectors, links and metadata are discarded.'
+        if tool_id == 'pdf_ocr':
+            note += ' OCR accuracy depends on scans and installed language data. The app never downloads engines or models.'
         self.preview.setMaximumHeight(280 if tool_id in ('pdf_redact', 'pdf_crop', 'pdf_signature') else 160)
         if tool_id == 'pdf_watermark': self.font_size.setValue(28)
         if tool_id == 'pdf_numbers': self.font_size.setValue(12)
@@ -418,7 +451,7 @@ class Window(QMainWindow):
             return
         tool = self.tool.id
         keys = set()
-        if tool.startswith('pdf_') and tool not in ('pdf_merge', 'pdf_redact', 'pdf_compare', 'pdf_forms', 'pdf_protect', 'pdf_unlock'):
+        if tool.startswith('pdf_') and tool not in M3_IDS and tool not in ('pdf_merge', 'pdf_redact', 'pdf_compare', 'pdf_forms', 'pdf_protect', 'pdf_unlock'):
             keys.add('pages')
         if tool == 'pdf_rotate': keys.add('rotation')
         if tool == 'pdf_import': keys.add('insert')
@@ -428,6 +461,12 @@ class Window(QMainWindow):
             keys.update(('mode', 'format', 'quality'))
             keys.update(('percent',) if self.resize_mode.currentText() == 'Percentage' else ('width', 'height', 'aspect'))
         if tool in M2_IDS: keys.add('password')
+        if tool in M3_IDS and tool != 'html_pdf': keys.add('password')
+        if tool == 'pdf_compress':
+            keys.add('compress_images')
+            if self.compress_images.isChecked(): keys.update(('quality', 'image_max_dimension'))
+        if tool in ('pdf_ocr', 'pdf_pdfa'): keys.add('dpi')
+        if tool == 'pdf_ocr': keys.update(('tesseract', 'tessdata', 'ocr_language', 'ocr_psm'))
         if tool == 'pdf_crop': keys.add('margins')
         if tool in ('pdf_watermark', 'pdf_numbers'): keys.update(('font', 'font_size'))
         if tool == 'pdf_watermark': keys.update(('text', 'opacity', 'angle'))
@@ -441,7 +480,7 @@ class Window(QMainWindow):
             for widget in widgets:
                 widget.setVisible(key in keys)
         self.options_group.setVisible(bool(keys))
-        self.page_group.setVisible(tool.startswith('pdf_') and tool not in ('pdf_merge', 'pdf_protect', 'pdf_unlock', 'pdf_compare', 'pdf_forms'))
+        self.page_group.setVisible(tool.startswith('pdf_') and tool not in M3_IDS and tool not in ('pdf_merge', 'pdf_protect', 'pdf_unlock', 'pdf_compare', 'pdf_forms'))
         self.select_pages_button.setVisible('pages' in keys)
         self.order_pages_button.setVisible('pages' in keys)
         redaction = tool == 'pdf_redact'
@@ -461,12 +500,12 @@ class Window(QMainWindow):
         return row
 
     def password_changed(self):
-        if not self.worker and self.tool and self.tool.id in M2_IDS:
+        if not self.worker and self.tool and self.tool.id in M2_IDS | M3_IDS:
             self.refresh_pages()
             self.preview_current(self.files.currentItem())
 
     def file_changed(self, item=None, *_):
-        if item and self.tool and self.tool.id in M2_IDS and not self.worker:
+        if item and self.tool and self.tool.id in M2_IDS | M3_IDS and not self.worker:
             self.refresh_pages()
         self.preview_current(item)
 
@@ -576,11 +615,11 @@ class Window(QMainWindow):
         if not paths or not self.tool.id.startswith('pdf_'):
             return
         path = paths[1] if self.tool.id == 'pdf_import' and len(paths) == 2 else paths[0]
-        if self.tool.id in M2_IDS and self.files.currentItem():
+        if self.tool.id in M2_IDS | M3_IDS and self.files.currentItem():
             path = Path(self.files.currentItem().data(Qt.ItemDataRole.UserRole))
         try:
             with ExitStack() as stack:
-                reader = read_pdf(stack, path, self.password.text() if self.tool.id in M2_IDS else None)
+                reader = read_pdf(stack, path, self.password.text() if self.tool.id in M2_IDS | M3_IDS else None)
                 for number, page in enumerate(reader.pages, 1):
                     item = QListWidgetItem(f"Page {number}  •  {int(page.mediabox.width)} × {int(page.mediabox.height)} pt  •  {page.rotation}°")
                     item.setData(Qt.ItemDataRole.UserRole, number)
@@ -609,7 +648,7 @@ class Window(QMainWindow):
         page_size = None
         try:
             if path.suffix.lower() == '.pdf':
-                password = self.password.text() if self.tool.id in M2_IDS else None
+                password = self.password.text() if self.tool.id in M2_IDS | M3_IDS else None
                 with ExitStack() as stack:
                     read_pdf(stack, path, password)
                 with pdfium.PdfDocument(str(path), password=password) as doc:
@@ -630,6 +669,9 @@ class Window(QMainWindow):
                             bitmap.close()
                     finally:
                         page.close()
+            elif path.suffix.lower() in ('.html', '.htm'):
+                self.preview.setText(f'Local HTML: {path.name}\nBasic HTML print layout\nA4 • 15 mm margins')
+                return
             else:
                 with open_image(path) as opened:
                     image = opened.copy()
@@ -674,12 +716,15 @@ class Window(QMainWindow):
                        margins=coordinates(self.margins.text()) if tool == 'pdf_crop' else (10,10,10,10),
                        text=self.watermark.text(), font_path=self.font_path.text(), font_size=self.font_size.value(),
                        opacity=self.opacity.value(), angle=self.angle.value(), start_number=self.start_number.value(),
-                       password=self.password.text() if tool in M2_IDS else '',
+                       password=self.password.text() if tool in M2_IDS | M3_IDS else '',
                        new_password=self.new_password.text() if tool == 'pdf_protect' else '',
                        signature_path=self.signature_path.text() if tool == 'pdf_signature' else '',
                        rect=coordinates(self.position.text()) if tool == 'pdf_signature' else (20,20,120,50),
                        redactions=parse_redactions(self.redactions.toPlainText()) if tool == 'pdf_redact' else (),
-                       compare_threshold=self.threshold.value(), form_values=tuple(values), flatten_forms=tool == 'pdf_forms' and self.flatten.isChecked())
+                       compare_threshold=self.threshold.value(), form_values=tuple(values), flatten_forms=tool == 'pdf_forms' and self.flatten.isChecked(),
+                       compress_images=tool == 'pdf_compress' and self.compress_images.isChecked(), image_max_dimension=self.image_max_dimension.value(),
+                       tesseract_path=self.tesseract_path.text(), tessdata_path=self.tessdata_path.text(),
+                       ocr_language=self.ocr_language.text().strip(), ocr_psm=self.ocr_psm.currentData())
 
     def start_job(self):
         if self.worker:

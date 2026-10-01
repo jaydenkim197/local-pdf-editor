@@ -17,6 +17,7 @@ def smoke_test():
 
     with TemporaryDirectory() as directory:
         root = Path(directory)
+        app = QApplication.instance() or QApplication([])
         image = root / 'smoke.png'
         Image.new('RGB', (32, 24), 'red').save(image)
         created = run_job('image_pdf', [image], root)
@@ -58,7 +59,21 @@ def smoke_test():
             raise RuntimeError('Redaction retained source structure')
         check('pdf_compare', [source, numbered[0]], Options(dpi=72))
         check('pdf_forms', [source], Options(form_values=(('name', 'Smoke'),), flatten_forms=True, dpi=72))
-        app = QApplication.instance() or QApplication([])
+        check('pdf_compress', [source], Options())
+        check('pdf_repair', [source], Options())
+        archival = check('pdf_pdfa', [source], Options(dpi=144))
+        reader = PdfReader(archival[0])
+        if reader.xmp_metadata.pdfaid_part != '1' or not reader.root_object.get('/OutputIntents'):
+            raise RuntimeError('PDF/A metadata/profile missing')
+        html = root / 'local.html'
+        html.write_text('<h1>LOCAL HTML</h1><p>Offline printing</p><img src="smoke.png">', encoding='utf-8')
+        printed = check('html_pdf', [html], Options())
+        if 'LOCAL' not in PdfReader(printed[0]).pages[0].extract_text():
+            raise RuntimeError('HTML content missing')
+        if '--ocr-smoke' in sys.argv:
+            recognized = check('pdf_ocr', archival, Options(dpi=144))
+            if 'SMOKE' not in PdfReader(recognized[0]).pages[0].extract_text():
+                raise RuntimeError('OCR searchable text missing')
         window = Window()
         window.select_tool('image_resize')
         window.add_files([image])
@@ -67,5 +82,6 @@ def smoke_test():
         if window.files.count() != 1 or window.preview.pixmap().isNull():
             raise RuntimeError('Qt preview did not load')
         window.close()
-    print('SMOKE PASS: M1 image/PDF/HEIC, all M2 processors including AES/redaction/forms, Qt workspace/preview')
+    print('SMOKE PASS: M1/M2, M3 compression/repair/PDF-A/HTML, Qt workspace/preview' +
+          (', installed Tesseract OCR' if '--ocr-smoke' in sys.argv else '; OCR engine not requested'))
     return 0

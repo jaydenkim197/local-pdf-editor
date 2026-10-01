@@ -14,3 +14,5 @@ def test_packaging_collects_real_native_notices(tmp_path):
     assert list((tmp_path / 'pi-heif').rglob('LICENSES_bundled.txt'))
     assert list((tmp_path / 'reportlab').rglob('bitstream-vera-license.txt'))
     assert list((tmp_path / 'cryptography').rglob('LICENSE.APACHE'))
+    assert (tmp_path / 'sRGB-NOTICE.txt').is_file()
+    assert (tmp_path / 'ADR-0003-m3-local-engines.md').is_file()

@@ -44,8 +44,16 @@ M2_TOOLS = (
     Tool("pdf_compare", "Compare PDFs", "PDF Analysis", (".pdf",), "Compare page visuals and create highlighted differences plus a report.", 2, 2),
     Tool("pdf_forms", "PDF forms", "PDF Editing", (".pdf",), "Inspect/fill basic AcroForm fields; optionally flatten.", maximum=1),
 )
-TOOLS = M1_TOOLS + M2_TOOLS
+M3_TOOLS = (
+    Tool("pdf_compress", "Compress PDF", "PDF Optimization", (".pdf",), "Optimize streams; optional lossy image compression. Size reduction varies."),
+    Tool("pdf_ocr", "OCR PDF", "PDF Optimization", (".pdf",), "Create searchable image pages with installed offline Tesseract 5 and language data."),
+    Tool("pdf_repair", "Repair PDF", "PDF Optimization", (".pdf",), "Recover readable PDFs with broken cross-references; missing content cannot be reconstructed."),
+    Tool("pdf_pdfa", "PDF/A conversion", "PDF Conversion", (".pdf",), "Create image-based PDF/A-1b. Text, forms and interactive content are flattened."),
+    Tool("html_pdf", "HTML → PDF", "PDF Conversion", (".html", ".htm"), "Print basic local HTML and images. No JavaScript, network resources or browser CSS layout."),
+)
+TOOLS = M1_TOOLS + M2_TOOLS + M3_TOOLS
 M2_IDS = frozenset(tool.id for tool in M2_TOOLS)
+M3_IDS = frozenset(tool.id for tool in M3_TOOLS)
 TOOL_BY_ID = {tool.id: tool for tool in TOOLS}
 
 
@@ -76,3 +84,9 @@ class Options:
     compare_threshold: int = 8
     form_values: tuple[tuple[str, str], ...] = field(default=(), repr=False)
     flatten_forms: bool = False
+    compress_images: bool = False
+    image_max_dimension: int = 2000
+    tesseract_path: str = ""
+    tessdata_path: str = ""
+    ocr_language: str = "eng"
+    ocr_psm: int = 3

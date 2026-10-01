@@ -16,14 +16,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install tesseract --yes --no-progress
+          "C:\Program Files\Tesseract-OCR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m pip install --no-build-isolation --no-deps -e .
       - run: python -m pytest -q
-      - run: python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic
+      - run: python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic --ocr-smoke
       - if: runner.os == 'Windows'
         run: python scripts/package_app.py
       - if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $process = Start-Process -FilePath "dist/LocalPdfUtilities/LocalPdfUtilities.exe" -ArgumentList "--smoke-test", "--heic-fixture", "tests/fixtures/sample.heic" -Wait -PassThru
+          $process = Start-Process -FilePath "dist/LocalPdfUtilities/LocalPdfUtilities.exe" -ArgumentList "--smoke-test", "--heic-fixture", "tests/fixtures/sample.heic", "--ocr-smoke" -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "Packaged smoke failed: $($process.ExitCode)" }

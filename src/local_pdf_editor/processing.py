@@ -13,7 +13,7 @@ from PIL import Image, ImageOps
 from pypdf import PdfReader, PdfWriter
 
 from .output import write_output
-from .tools import M2_IDS, Options, TOOL_BY_ID
+from .tools import M2_IDS, M3_IDS, Options, TOOL_BY_ID
 
 pi_heif.register_heif_opener()
 MAX_PIXELS = 40_000_000
@@ -279,7 +279,10 @@ def run_job(tool_id: str, files: list[Path], folder: Path, options: Options = Op
             if path.suffix.lower() not in tool.extensions:
                 raise ValueError(f"Unsupported file type: {path.name}")
         ctx.progress(0, "Processing locally…")
-        if tool_id in M2_IDS:
+        if tool_id in M3_IDS:
+            from .m3 import process_m3
+            process_m3(tool_id, files, folder, options, ctx)
+        elif tool_id in M2_IDS:
             from .m2 import process_m2
             process_m2(tool_id, files, folder, options, ctx)
         elif tool_id in ("pdf_merge", "pdf_import", "pdf_reorder", "pdf_delete"):

@@ -193,7 +193,7 @@ def raster_redact(path, folder, opt, ctx):
                  lambda output: write_raster_document(document, output, opt.dpi, by_page, ctx))
 
 
-def write_raster_document(document, output, dpi, by_page, ctx):
+def write_raster_document(document, output, dpi, by_page, ctx, action='Redacting'):
     canvas = Canvas(str(output), pageCompression=1)
     # Only new pixels go into this PDF. No reader/writer source cloning occurs.
     total = 0
@@ -215,7 +215,7 @@ def write_raster_document(document, output, dpi, by_page, ctx):
             canvas.showPage()
         finally:
             image.close()
-        ctx.progress(round(90 * (index + 1) / len(document)), f"Redacting page {index + 1}")
+        ctx.progress(round(90 * (index + 1) / len(document)), f"{action} page {index + 1}")
     ctx.check()
     canvas.save()
 
