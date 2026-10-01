@@ -1,0 +1,29 @@
+name: Verify M1
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pip install --no-build-isolation --no-deps -e .
+      - run: python -m pytest -q
+      - run: python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic
+      - if: runner.os == 'Windows'
+        run: python scripts/package_app.py
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath "dist/LocalPdfUtilities/LocalPdfUtilities.exe" -ArgumentList "--smoke-test", "--heic-fixture", "tests/fixtures/sample.heic" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Packaged smoke failed: $($process.ExitCode)" }

@@ -31,3 +31,12 @@ Define the PDF editor MVP and target platform before selecting dependencies.
 - Added bounded render/resize sizes and encrypted/corrupt input errors.
 - 38 Cloud tests passed, covering real PDFs and a licensed HEIC fixture, page order/rotation/reopen, dimensions/formats/EXIF, batches, invalid options, partial failures, cancellation, Unicode names and concurrent output collisions.
 - Corrected a PDFium page lifetime API mismatch observed in the first rendering probe. Windows runtime remains pending.
+
+## 2026-10-01 — Shared M1 desktop app and packaging
+
+- Connected all 14 tools to one Qt workspace with categories/cards, drop/picker, ordered files/pages, preview/options, background processing, progress/cancellation, results and local file/folder opening.
+- Added host-native onedir packaging, explicit Windows HEIC DLL inclusion, license collection, executable smoke checks, and Windows/Linux CI instructions.
+- 59 Cloud tests passed (38 processing, 20 GUI, 1 packaging notice). All 14 tools executed through GUI jobs.
+- Built the 192 MB Linux bundle and passed frozen image/PDF/HEIC/Qt smoke. Downloaded all pinned Windows x64 runtime wheels; no Windows binaries were run.
+- Reviewed screenshots of home/workspace; corrected hidden option parsing and raw metadata notice collection after observed failures.
+- Updated product requirements, architecture, status, verification and Windows setup instructions. Actual Windows GUI, DLL/package behavior and public release compliance remain pending.

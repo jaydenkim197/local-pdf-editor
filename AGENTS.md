@@ -130,3 +130,11 @@ For substantial work, report:
 Repository-local skills are canonical for this project. Optional personal/global installations may be used for other local projects; Cloud tasks rely on the copies committed here.
 
 Cloud tasks already have an isolated workspace. Use the existing checkout; do not create a Git worktree unless the user explicitly requests one.
+
+## 12. Product Scope and Verification
+
+Read `docs/product-spec.md` and `docs/implementation-plan.md` before application changes. This is a Windows-first, fully local PDF/image utility. Preserve the explicit excluded features and M1 scope; do not create M2/M3 placeholders. GitHub owns project history and repository documentation preserves context.
+
+Use the selected stack in `docs/decisions/ADR-0001-m1-stack.md`; revisit settled decisions only with new evidence. Features reuse the registry, shared workspace, processor job contract, and output layer.
+
+Run relevant tests before coherent checkpoints. Update project status, current architecture, development log and verification evidence when behavior changes. Cloud/offscreen checks are not Windows GUI or packaged executable checks. Do not mark Windows runtime VERIFIED without observed Windows results.
