@@ -133,8 +133,10 @@ Cloud tasks already have an isolated workspace. Use the existing checkout; do no
 
 ## 12. Product Scope and Verification
 
-Read `docs/product-spec.md` and `docs/implementation-plan.md` before application changes. This is a Windows-first, fully local PDF/image utility. Preserve explicit excluded features and the authorized M1/M2 scope; do not implement or create M3 placeholders. GitHub owns project history and repository documentation preserves context.
+Read `docs/product-spec.md` and `docs/implementation-plan.md` before application changes. This is a Windows-first, fully local PDF/image utility. Preserve explicit excluded features and the authorized M1/M2/M3 scope; do not create future feature placeholders. GitHub owns project history and repository documentation preserves context.
 
 Use the stack in `docs/decisions/ADR-0001-m1-stack.md` and M2 boundaries in `docs/decisions/ADR-0002-m2-pdf-operations.md`; revisit settled decisions only with new evidence. Features reuse the registry, shared workspace, processor job contract, and output layer. Secure redaction must never retain original source content behind visual masks; inspect actual output objects and rendered pixels. Crop and signature images have different purposes from redaction and certificate signing.
+
+M3 uses `docs/decisions/ADR-0003-m3-local-engines.md` and `docs/m3-engines.md`. OCR requires an installed Tesseract 5 and local language data, never runtime downloads. PDF/A is image-based PDF/A-1b; verify conformance with a real independent validator when modifying that conversion. HTML is basic local rich text via Qt Gui QPdfWriter, without browser/JavaScript/network resources. Preserve explicit limitations and external-engine distribution boundaries.
 
 Run relevant tests before coherent checkpoints. Update project status, current architecture, development log and verification evidence when behavior changes. Cloud/offscreen checks are not Windows GUI or packaged executable checks. Do not mark Windows runtime VERIFIED without observed Windows results.

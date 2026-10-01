@@ -4,7 +4,7 @@ Last updated: 2026-10-01
 
 ## Current Goal
 
-M1 and M2 implementation is complete for the offline Windows-first PDF/image utility in [product-spec.md](product-spec.md). Cloud processing/offscreen validation is complete; actual Windows runtime validation remains pending. M3 is not implemented or planned.
+M1, M2 and M3 implementation is complete for the offline Windows-first PDF/image utility in [product-spec.md](product-spec.md). Cloud processing/offscreen/native package validation is complete; actual Windows runtime validation remains pending. OCR integrates installed local Tesseract 5; PDF/A is image-based PDF/A-1b and HTML is basic local rich text.
 
 ## Status Model
 
@@ -49,14 +49,27 @@ VERIFIED below means observed Linux Cloud results only; Windows runtime remains 
 | Image-based form flattening | IMPLEMENTED | VERIFIED | PLANNED |
 | Shared region selection / masked transient passwords / field editor | IMPLEMENTED | VERIFIED | PLANNED |
 
+## M3 Feature Matrix
+
+| Feature | Implementation | Cloud | Windows runtime |
+|---|---|---|---|
+| Lossless structural / optional lossy image compression | IMPLEMENTED | VERIFIED | PLANNED |
+| Local Tesseract OCR integration / searchable image PDF | IMPLEMENTED | VERIFIED | PLANNED |
+| Readable damaged-PDF repair / strict reopen / render | IMPLEMENTED | VERIFIED | PLANNED |
+| Raster PDF/A-1b / independent Preflight conformance | IMPLEMENTED | VERIFIED | PLANNED |
+| Basic local HTML / images / direct Qt PDF writing | IMPLEMENTED | VERIFIED | PLANNED |
+| Shared M3 controls / jobs / errors / cancellation | IMPLEMENTED | VERIFIED | PLANNED |
+
 ## Evidence and Decisions
 
 - Original baseline skills preserved; repository-local paths checked.
-- 101 tests passed: 38 M1 processors, 29 M2 processors, 20 M1 GUI/regression, 13 M2 GUI, 1 package notice collection. All 23 tools exercised through the shared GUI.
-- Linux onedir build and bundled M1/M2 PDF/image/HEIC/AES/form/Qt smoke passed.
+- 143 tests passed: 101 previous cases plus 35 M3 processor and 7 M3 GUI cases. All 28 tools exercised through the shared GUI. Four PDF/A specimens passed real Apache PDFBox Preflight 3.0.6 validation; an ordinary source PDF was correctly rejected.
+- Linux onedir build and bundled M1/M2/M3 PDF/image/HEIC/AES/form/HTML/ICC/Qt smoke including real installed Tesseract OCR passed.
+- English/Korean `eng+kor` OCR sample passed with explicit Unicode data folder and official locally installed data; sample evidence, not a general accuracy guarantee.
 - Windows x64 Python 3.12 dependency wheels, including M2 additions, downloaded but not executed.
 - [ADR-0001](decisions/ADR-0001-m1-stack.md): Python 3.12, Qt Widgets, pypdf/PDFium, Pillow, decoder-only pi-heif, pytest, PyInstaller onedir.
 - [ADR-0002](decisions/ADR-0002-m2-pdf-operations.md): retain M1 stack; add BSD ReportLab and Apache/BSD cryptography, with lossless raster redaction/flattening.
+- [ADR-0003](decisions/ADR-0003-m3-local-engines.md): existing dependencies, direct Qt Gui PDF writer, external local Tesseract 5, licensed ICC v2 and independent developer-only Preflight. No new Python runtime packages or OCR binaries/models redistributed.
 - [verification.md](verification.md) contains commands and pending Windows checks.
 
 ## Known Limitations
@@ -68,7 +81,8 @@ VERIFIED below means observed Linux Cloud results only; Windows runtime remains 
 - Secure redaction and form flattening discard all text search/vector/interactivity; only explicitly marked visible regions are erased. Crop is not security deletion; signatures are image insertion, not certificate signing.
 - Forms support standard text (ASCII edits), check/radio and single-choice fields, not XFA or all possible PDF form behavior. Comparison is visual by page index, not semantic matching.
 - Git push and Cloud environment publication are separate.
+- OCR needs installed engine/languages/pdf.ttf and recognition review; the package is not self-contained for OCR. Repair cannot recover missing bytes. Compression may increase size; optional image compression is lossy. PDF/A rasterizes to PDF/A-1b and loses text/vector/interactivity. HTML supports basic Qt rich text, not JavaScript/external CSS/browser fidelity.
 
 ## Next Incomplete Task
 
-Run the Windows source/packaged app checks in verification.md, record observed results, and fix any Windows-specific failures. Mark Windows runtime VERIFIED only with observed results.
+On Windows x64/Python 3.12, install local Tesseract 5 with English/Korean data, run the full suite and frozen `--ocr-smoke`, then offline clean-machine M1/M2/M3 checks in verification.md. Record actual results and fix Windows failures; mark Windows runtime VERIFIED only with observed evidence. Public release compliance remains separate.

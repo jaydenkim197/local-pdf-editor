@@ -22,6 +22,18 @@ Windows 우선, 완전 로컬 PDF·이미지 유틸리티입니다. 파일 업�
 
 기존 PDF 본문·이미지 직접 편집, Office 변환, AI 요약·번역, Markdown 변환은 범위 밖입니다. [제품 사양](docs/product-spec.md)을 확인하세요.
 
+## M3 기능
+
+- PDF 압축: 기본 무손실 최적화, 선택적 이미지 JPEG 압축·크기 축소
+- OCR PDF: 설치된 Tesseract 5와 로컬 언어 데이터로 검색 가능한 이미지 PDF 생성
+- PDF 복구: 읽을 수 있는 손상된 교차 참조·객체 재작성 및 결과 확인
+- PDF/A 변환: 독립 검증을 거친 이미지 기반 PDF/A-1b
+- HTML → PDF: 기본 HTML·표·로컬 JPEG/PNG를 A4 PDF로 출력
+
+OCR은 **Tesseract 5·언어 데이터·pdf.ttf를 별도로 설치**해야 합니다. OCR 화면에서 실행 파일/데이터 폴더와 `eng`, `kor`, `eng+kor`를 지정합니다. 앱은 엔진이나 모델을 다운로드하지 않습니다. [오프라인 엔진 준비](docs/m3-engines.md)를 확인하세요.
+
+압축 결과가 항상 작아지지는 않으며 선택적 이미지 압축은 손실 방식입니다. 복구는 없어진 내용을 재구성하지 못합니다. PDF/A는 검색·벡터·폼을 잃는 PDF/A-1b이며 1a/2/3은 지원하지 않습니다. HTML은 JavaScript·외부 CSS·브라우저 레이아웃을 지원하지 않고 이미지는 입력 폴더 안에서만 읽습니다. OCR 정확도는 직접 검토해야 합니다. M3의 암호화 입력 처리 결과는 암호가 없는 새 사본입니다.
+
 ## Windows 실행 — Python 3.12 / Windows x64
 
 저장소 루트에서 PowerShell로 실행합니다. 개발 중에는 인터넷이 패키지 설치에만 필요하며, 설치 후 앱은 오프라인으로 실행됩니다.
@@ -43,10 +55,12 @@ M2의 좌표는 화면에 보이는 페이지의 왼쪽 위에서 시작하는 �
 
 ## 검증 및 Windows 패키징
 
+전체 테스트 전에 Tesseract 5와 English 데이터를 설치합니다. Korean도 설치하면 `eng+kor`를 사용할 수 있습니다. 일반 패키지 점검은 OCR 없이 가능하며 `--ocr-smoke`는 설치된 OCR까지 필수 검증합니다.
+
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
 .venv\Scripts\python.exe scripts\package_app.py
-dist\LocalPdfUtilities\LocalPdfUtilities.exe --smoke-test --heic-fixture tests\fixtures\sample.heic
+dist\LocalPdfUtilities\LocalPdfUtilities.exe --smoke-test --heic-fixture tests\fixtures\sample.heic --ocr-smoke
 ```
 
 `dist/LocalPdfUtilities/` 폴더 전체가 실행 패키지입니다. EXE만 복사하면 안 됩니다. Windows 패키지는 Windows에서 빌드해야 합니다. 서명·설치 프로그램은 포함하지 않습니다. 공개 배포 전 LGPL 소스/고지와 HEVC 배포 검토가 남아 있습니다: [라이선스 검토](docs/licenses/README.md).
@@ -54,7 +68,7 @@ dist\LocalPdfUtilities\LocalPdfUtilities.exe --smoke-test --heic-fixture tests\f
 Linux Cloud에서는 `.venv/bin/python`을 사용합니다. 테스트가 Qt offscreen 모드를 설정합니다.
 
 ```bash
-QT_QPA_PLATFORM=offscreen .venv/bin/python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic --ocr-smoke
 ```
 
 Cloud 기능·offscreen GUI는 검증했지만 **실제 Windows GUI·패키지 실행 검증은 아직 하지 않았습니다.** [검증 기록 및 Windows 체크리스트](docs/verification.md)를 확인하세요.

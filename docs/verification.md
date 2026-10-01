@@ -18,7 +18,7 @@ Cloud is not Windows runtime verification. Offscreen tests do not verify desktop
 
 ## Required Windows Validation — Pending
 
-Clone main on Windows x64 with Python 3.12; follow README installation commands.
+Clone main on Windows x64 with Python 3.12; follow README installation commands. Install Tesseract 5 with English data first for the current full suite, as described in [m3-engines.md](m3-engines.md).
 
 1. Run `.venv\Scripts\python.exe -m pytest -q`; record platform, versions, count/results.
 2. Run `.venv\Scripts\python.exe -m local_pdf_editor`. Confirm startup, cards at 100%/150% scaling, keyboard navigation, dialogs and Explorer drop with Unicode paths.
@@ -71,4 +71,46 @@ M2 diagnostics corrected during verification: pypdf's writer context entry reset
 4. Mark redaction regions across pages, including text/images and form content. Inspect outputs visually and with an independent text/object extraction tool: removed text must be unselectable, metadata/attachments/forms absent, and selected pixels erased. Check fractional edges, DPI and input replacement before sharing real sensitive files.
 5. Compare identical/changed/differently sized/missing-page PDFs and inspect report/highlights. Fill representative standard AcroForms, reopen editable values and flattened appearances in an independent viewer. Record unsupported XFA/Unicode/multi-select limits accurately.
 
-These checks and actual Windows CI results have not been observed in this Cloud machine. No M3 verification is claimed.
+These checks and actual Windows CI results have not been observed in this Cloud machine. At the M2 checkpoint no M3 verification had been performed; the later M3 evidence follows.
+
+## M3 Cloud Evidence — 2026-10-01
+
+M2 gate passed: coherent clean main, 101 regression tests and dependency consistency re-executed. Final suite: **143 passed, no skipped/disabled tests** (101 previous + 35 M3 processor + 7 M3 GUI). Independent PDF/A validation enabled for four specimen cases.
+
+```bash
+export XDG_CACHE_HOME=/workspace/local-pdf-editor/.cache
+export PDF_PREFLIGHT_JAR=/workspace/local-pdf-editor/.cache/tools/preflight-app-3.0.6.jar
+.venv/bin/python -m pytest -q
+.venv/bin/python -m pip check
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic --ocr-smoke
+.venv/bin/python scripts/package_app.py --cloud-smoke
+QT_QPA_PLATFORM=offscreen dist/LocalPdfUtilities-CloudSmoke/LocalPdfUtilities-CloudSmoke --smoke-test --heic-fixture tests/fixtures/sample.heic --ocr-smoke
+```
+
+| Check | Observed result |
+|---|---|
+| Compression | Uncompressed stream fixture reduced by more than half with retained text; photo reduced by more than two-thirds with text/downsampled image; default forms/pixels and transparency retained; oversized images rejected before decode |
+| Repair | Broken startxref rejected by strict input parser, repaired and strict-reopened with intact pages/text/render; unreadable/missing content failed cleanly |
+| OCR | Actual Tesseract 5.5.0/English created searchable text from an image-only scan, preserved dimensions/near-identical pixels; missing engine/language/data/invalid settings failed; active child cancelled/timed out and reaped |
+| English/Korean manual sample | HTML → raster scan → actual `eng+kor` OCR with explicit Unicode tessdata folder yielded `한글 문서` and `LOCAL OCR TEST`; official Apache-licensed data used locally, not shipped |
+| PDF/A-1b | Text/form/rotated-cropped/encrypted specimens rebuilt without original text/forms/attachments/metadata; dimensions/pixels retained; four independently accepted by Apache PDFBox Preflight 3.0.6 |
+| Validator negative control | Ordinary source PDF correctly rejected for missing profile/XMP/unembedded fonts; expected nonconforming input, not a failed app check |
+| HTML | Headings/table/text/local image/multiple pages yielded readable PDFs; script did not execute; network/outside-folder image requests failed without incomplete outputs |
+| Shared workflow | Five M3 tools ran real GUI background jobs; scoped options, missing-engine error/retry; passwords, batches, collisions/original preservation and cancellation cleanup tested |
+| Packaging | Wheel and Linux onedir built; ICC included; profile notice/ADRs copied; frozen M1/M2/M3 smoke including installed OCR passed |
+| Platform research | Publisher licenses/source reviewed; Windows Essentials artifacts inspected, chosen Qt Gui writer available; actual Windows execution remains unrun |
+
+Syscall tracing found QPrinter queried CUPS while initializing. Replaced it with Qt Gui QPdfWriter and reran tests/smoke. Final source/frozen traces show no printer-service or remote traffic; native Tesseract performs local OS interface/address inspection (netlink/local port-0 socket queries) without sending document data. This is observed Linux sample behavior, not a Windows network trace claim.
+
+Preflight is developer-only Java tooling, not an app dependency or packaged runtime. Pinned jar/checksum and ICC provenance are in ADR-0003. No veraPDF result is claimed. Public binary license obligations from earlier milestones remain pending.
+
+Cloud setup retains the independently checksum-verified Preflight jar in ignored `.cache/tools`. Re-executed installation and cached-tool checks passed. Later fresh Maven requests returned HTTP 429; a new download depends on repository availability and must still pass the pinned checksum. This does not affect installed conformance validation or application runtime. Updated installer/start instructions are saved as a configuration draft, not a published environment.
+
+## Additional Windows M3 Checks — Pending
+
+1. Install Tesseract 5/English/Korean/pdf.ttf, check executable/`--list-langs`, run full pytest/source/frozen `--ocr-smoke`. Inspect DLL/data discovery with spaces/Unicode paths and explicit tessdata. Without an engine, other tools must work and OCR must show an actionable error.
+2. Copy the package to a clean machine without Python and disconnect networking. With local OCR prerequisites, process English/Korean scans, review text accuracy, dimensions/multipage output, progress, child cancel and timeout.
+3. Compress text/form/photo/transparent PDFs, compare sizes/text/forms/visual detail and unchanged originals in an independent viewer. Already optimized files need not shrink. Repair real broken cross-references; missing content is not recoverable.
+4. Convert rotated/cropped/form/encrypted/color documents to PDF/A-1b, inspect visuals and run independent Preflight/another validator. Confirm bundled ICC, unencrypted output and removed source interactive structures. No PDF/A-1a/2/3/accessibility claim.
+5. Print local UTF-8 Korean/English HTML with images/tables/multiple pages. Confirm fonts/A4/margins, no printer-service/network request, blocked-resource errors and native Qt behavior. Modern web/CSS/JS fidelity is outside scope.
+6. Inspect Windows CI results when available; CI commands are provided but no run result was observed. Complete earlier LGPL/HEIC/crypto/app-license public release review before distributing binaries; this package does not bundle Tesseract native binaries/models.
