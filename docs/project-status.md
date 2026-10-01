@@ -6,7 +6,7 @@ Last updated: 2026-10-02 (Asia/Seoul)
 
 M1, M2 and M3 implementation is complete for the offline Windows-first PDF/image utility in [product-spec.md](product-spec.md). Cloud processing/offscreen/native package validation is complete; actual Windows runtime validation remains pending. OCR integrates installed local Tesseract 5; PDF/A is image-based PDF/A-1b and HTML is basic local rich text.
 
-Windows readiness is BLOCKED pending corrected CI verification. The public [diagnostic run](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36914991351) exposed Ubuntu's missing libEGL, Windows Tesseract's rejected version format and missing default HTML font/text. The fixes add Qt OS prerequisites, accept Tesseract's `v5` spelling and reuse bundled Vera for HTML. The workflow records failures/JUnit, checks a relocated frozen package with native Windows Qt at 100%/150%, Python-free PATH and outbound blocking, including English/Korean OCR, and retains a checksummed development ZIP only on success. No successful Windows build is yet observed at this checkpoint.
+Hosted Windows source and native frozen verification passed in [run 36917030277](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36917030277) for 22d7a9a. Its development ZIP is available (58.5 MB Actions artifact); see [Windows use](windows-use.md). The executable passed Unicode relocation, Python-free PATH, outbound blocking, native Windows Qt at 100%/150% and actual English/Korean OCR with Tesseract v5.5.3.20260724. Windows independent Preflight is being enabled; physical clean-machine/manual desktop and public-release checks remain pending.
 
 ## Status Model
 
@@ -65,11 +65,11 @@ VERIFIED below means observed Linux Cloud results only; Windows runtime remains 
 ## Evidence and Decisions
 
 - Original baseline skills preserved; repository-local paths checked.
-- 151 tests passed: the 143 milestone cases plus 8 audit regressions. All 28 tools exercised through the shared GUI. Four PDF/A specimens passed real Apache PDFBox Preflight 3.0.6 validation. The earlier ordinary-source negative control was correctly rejected.
+- 155 Cloud tests passed: the 143 milestone cases, 8 audit regressions and 4 version-format cases. All 28 tools exercised through the shared GUI. Four PDF/A specimens passed real Apache PDFBox Preflight 3.0.6 validation. The earlier ordinary-source negative control was correctly rejected.
 - Linux onedir build and bundled M1/M2/M3 PDF/image/HEIC/AES/form/HTML/ICC/Qt smoke including real installed Tesseract OCR passed.
 - [2026-10-02 requirements audit](verification-audit-2026-10-02.md) reproduced and corrected fractional-page redaction edge pixels, missing form appearances in PDF image exports, and optional compression's CMYK/color-profile/layer changes. Fresh source/frozen smoke includes the redaction and form-export regressions.
 - English/Korean `eng+kor` OCR sample passed with explicit Unicode data folder and official locally installed data; sample evidence, not a general accuracy guarantee.
-- Windows x64 Python 3.12 dependency wheels, including M2 additions, downloaded but not executed.
+- Hosted Windows source tests and the native executable now passed after fixing OCR version identification and default HTML font loading; independent Windows conformance and physical/manual checks remain separate.
 - [ADR-0001](decisions/ADR-0001-m1-stack.md): Python 3.12, Qt Widgets, pypdf/PDFium, Pillow, decoder-only pi-heif, pytest, PyInstaller onedir.
 - [ADR-0002](decisions/ADR-0002-m2-pdf-operations.md): retain M1 stack; add BSD ReportLab and Apache/BSD cryptography, with lossless raster redaction/flattening.
 - [ADR-0003](decisions/ADR-0003-m3-local-engines.md): existing dependencies, direct Qt Gui PDF writer, external local Tesseract 5, licensed ICC v2 and independent developer-only Preflight. No new Python runtime packages or OCR binaries/models redistributed.
@@ -77,7 +77,7 @@ VERIFIED below means observed Linux Cloud results only; Windows runtime remains 
 
 ## Known Limitations
 
-- Actual Windows GUI and frozen executable have not been run in Cloud.
+- Native Windows GUI-backend/frozen smoke passed on a hosted Windows runner; physical user-PC display/Explorer/dialogs and clean-machine execution remain unverified.
 - pi-heif is discontinued; support/security and redistribution source/notice material need review before public release.
 - Primary 8-bit HEIC output, cooperative cancellation, bounded large buffers; see product-spec.md.
 - Linux bundle and Windows wheel availability do not prove Windows runtime compatibility.

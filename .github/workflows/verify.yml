@@ -17,6 +17,37 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare independent PDF-A validator
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          import time
+          import urllib.error
+          import urllib.request
+          target = Path(os.environ['RUNNER_TEMP']) / 'preflight-app-3.0.6.jar'
+          url = 'https://repo.maven.apache.org/maven2/org/apache/pdfbox/preflight-app/3.0.6/preflight-app-3.0.6.jar'
+          for attempt in range(3):
+              try:
+                  with urllib.request.urlopen(url, timeout=30) as response:
+                      data = response.read()
+                  break
+              except urllib.error.HTTPError as error:
+                  if error.code not in (429, 500, 502, 503, 504) or attempt == 2:
+                      raise
+                  time.sleep(3)
+          if hashlib.sha256(data).hexdigest() != '99d1a0bb97b2f6dc92ec04a2788b21b5af135c36efb58f994f7b0a28238b7c9c':
+              raise RuntimeError('Independent validator checksum mismatch')
+          target.write_bytes(data)
+          with Path(os.environ['GITHUB_ENV']).open('a', encoding='utf-8') as stream:
+              stream.write(f'PDF_PREFLIGHT_JAR={target}\n')
+          PY
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng libegl1 libopengl0
       - if: runner.os == 'Windows'
@@ -65,6 +96,7 @@ jobs:
           Compress-Archive -Path dist/LocalPdfUtilities -DestinationPath dist/LocalPdfUtilities-Windows-x64.zip
           $hash = (Get-FileHash dist/LocalPdfUtilities-Windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  LocalPdfUtilities-Windows-x64.zip" | Set-Content dist/LocalPdfUtilities-Windows-x64.sha256 -Encoding ascii
+          Write-Output "::notice title=Windows package SHA-256::$hash"
           "## Windows development package`n`nSource tests and packaged smoke passed for $env:GITHUB_SHA. Download the Windows artifact, extract its ZIP and run LocalPdfUtilities/LocalPdfUtilities.exe. OCR still requires local Tesseract. Actual desktop/clean-machine and public-release checks remain pending.`n`nSHA-256: $hash" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
       - name: Retain verified Windows development package
         if: runner.os == 'Windows'

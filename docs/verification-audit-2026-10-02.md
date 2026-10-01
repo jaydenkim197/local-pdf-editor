@@ -1,5 +1,7 @@
 # Requirements and defect audit — 2026-10-02
 
+This records the earlier Cloud-only audit checkpoint. Subsequent hosted Windows source/build/native execution evidence is in [verification.md](verification.md); do not treat the unrun Windows statements below as the latest project status.
+
 Date uses Asia/Seoul; Cloud commands ran on 2026-10-01 UTC. Audited baseline: main at `1eb47f4e5833aa5e5c799a24954877b47cc7cf1b`, initially clean and matching origin/main.
 
 ## Verdict

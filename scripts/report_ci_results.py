@@ -23,6 +23,11 @@ def main():
     skipped = sum(case.find('skipped') is not None for case in cases)
     counts = f'{len(cases)} cases; {len(failed)} failures/errors; {skipped} skipped'
     print(counts)
+    print('::notice title=Actual pytest results::' + escape(counts))
+    if os.environ.get('PDF_PREFLIGHT_JAR'):
+        validated = sum(case.get('name', '').startswith('test_pdfa_fresh_raster_output_and_independent_preflight')
+                        and not any(item.tag in ('failure', 'error', 'skipped') for item in case) for case in cases)
+        print(f'::notice title=Independent PDF-A validation::{validated} PDF/A specimen tests passed with independent Preflight enabled.')
     lines = ['## Actual pytest results', '', counts, '']
     for index, (case, issue) in enumerate(failed):
         name = f"{case.get('classname', '')}.{case.get('name', '')}"

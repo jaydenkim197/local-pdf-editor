@@ -38,6 +38,8 @@ OCR은 **Tesseract 5·언어 데이터·pdf.ttf를 별도로 설치**해야 합�
 
 ## Windows 실행 — Python 3.12 / Windows x64
 
+개발용 EXE는 [성공한 Windows CI 실행의 아티팩트](https://github.com/jaydenkim197/local-pdf-editor/actions/workflows/verify.yml)에서 ZIP으로 받을 수 있습니다. 전체 폴더를 풀고 `LocalPdfUtilities.exe`를 실행하며 Python 설치는 필요하지 않습니다. 패키지는 소스/EXE 검사를 통과할 때만 생성합니다. [다운로드·사용 절차](docs/windows-use.md)를 확인하세요. 아래 명령은 소스 개발용입니다.
+
 저장소 루트에서 PowerShell로 실행합니다. 개발 중에는 인터넷이 패키지 설치에만 필요하며, 설치 후 앱은 오프라인으로 실행됩니다.
 
 ```powershell
@@ -73,7 +75,7 @@ Linux Cloud에서는 `.venv/bin/python`을 사용합니다. 테스트가 Qt offs
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m local_pdf_editor --smoke-test --heic-fixture tests/fixtures/sample.heic --ocr-smoke
 ```
 
-Cloud 기능·offscreen GUI는 검증했지만 **실제 Windows GUI·패키지 실행 검증은 아직 하지 않았습니다.** [검증 기록 및 Windows 체크리스트](docs/verification.md)를 확인하세요.
+Cloud와 Windows CI에서 소스 테스트·빌드된 EXE 검사를 통과했습니다. Windows EXE는 기본 화면 백엔드의 100%/150% 배율, 한글 경로, Python 없는 PATH, 송신 차단 상태에서 영어·한국어 OCR까지 확인했습니다. **개인 PC의 실제 Explorer·대화상자·디스플레이와 Python 미설치 깨끗한 PC 검증은 남아 있습니다.** [검증 기록 및 Windows 체크리스트](docs/verification.md)를 확인하세요.
 
 ## 프로젝트 문서
 

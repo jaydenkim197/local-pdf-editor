@@ -1,5 +1,13 @@
 # Verification Evidence
 
+## Hosted Windows Execution — 2026-10-02 (Asia/Seoul)
+
+[Run 36917030277](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36917030277), commit 22d7a9a, produced the Windows x64 development ZIP after passing source tests, build and frozen checks. Public annotations confirm both 100% and 150% runs used the native Windows Qt backend from a Unicode relocated folder with Python removed from PATH and outbound rules applied to the app/OCR engine. Real English/Korean OCR passed with Tesseract v5.5.3.20260724. JUnit and JSON evidence were retained; the package artifact is 58.5 MB. Artifact digest is the Actions envelope digest, not the inner ZIP checksum.
+
+Corrected hosted failures from [diagnostic run 36914991351](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36914991351): Ubuntu libEGL missing, Windows Tesseract `v5` format rejected, and HTML missing its default text font. Added OS libraries, supported `v5` identification and reused licensed bundled Vera. Updated Cloud full suite: 155 passed, including four independent Preflight specimens; rebuilt Linux frozen smoke/report also passed.
+
+Independent Preflight is now configured in both CI platforms with Java 17, HTTPS and the pinned jar SHA-256; Windows results from that strengthened run are pending. OCR Korean data is pinned/checksummed and prepared only on the runner, not shipped. [Windows download/use](windows-use.md) covers the successful development artifact. This hosted check isolates Python/Qt paths but cannot prove a physical machine has no other installed components. Manual Explorer/dialogs/display/real-document and clean-PC checks and public-release compliance remain pending.
+
 ## Requirements Audit — 2026-10-02 (Asia/Seoul)
 
 Full report: [verification-audit-2026-10-02.md](verification-audit-2026-10-02.md). Starting main was clean and matched origin. All 143 earlier cases passed, but additional probes reproduced five defects: fractional-page redaction edge pixels, missing filled-form image exports, and optional compression changing CMYK colors, hidden-layer visibility and ICC color interpretation. Fixed all five with eight added regression cases using existing dependencies.
