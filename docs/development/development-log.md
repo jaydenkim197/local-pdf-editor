@@ -40,3 +40,14 @@ Define the PDF editor MVP and target platform before selecting dependencies.
 - Built the 192 MB Linux bundle and passed frozen image/PDF/HEIC/Qt smoke. Downloaded all pinned Windows x64 runtime wheels; no Windows binaries were run.
 - Reviewed screenshots of home/workspace; corrected hidden option parsing and raw metadata notice collection after observed failures.
 - Updated product requirements, architecture, status, verification and Windows setup instructions. Actual Windows GUI, DLL/package behavior and public release compliance remain pending.
+
+## 2026-10-01 — M2 processing and shared workflow
+
+- M1 gate: read requested documentation/skills, confirmed clean main matched GitHub, reran all 59 baseline tests successfully. Pending Windows/release checks do not block source development; no M1 stack change or M3 work.
+- Added crop, watermark, numbers, AES-256 protection/correct-password removal, signature images, secure source-free raster redaction, visual comparison and standard AcroForm inspect/fill/flatten. ReportLab/cryptography licenses reviewed from installed publisher metadata.
+- Reused registry/options/Context/Result/output layer and one Qt workspace; added point-coordinate region preview, password handling, field editor and relevant controls.
+- Corrected writer context reset and radio flattening appearance collisions using observed failures; cloned inside context and rasterized filled appearances for flattening.
+- Full suite: 101 passed (29 M2 processor + 13 M2 GUI + 59 baseline/notice). Validated source-content removal, actual pixels, AES passwords, form limits, cancellation/cleanup, batch safety and stale redaction prevention.
+- Linux onedir/frozen M1/M2 smoke passed; Windows x64 additions downloaded but not executed. Actual Windows runtime and public distribution compliance remain pending; exact next task is Windows M1/M2 source/packaged validation.
+
+- Final geometry review preserved original rotation/annotation coordinates for crop/overlays; rotated form crop and signature tests verify unchanged form pixels outside the edited region.

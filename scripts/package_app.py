@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = ('PySide6-Essentials', 'shiboken6', 'pypdf', 'pypdfium2', 'Pillow', 'pi-heif', 'pyinstaller')
+PACKAGES = ('PySide6-Essentials', 'shiboken6', 'pypdf', 'pypdfium2', 'Pillow', 'pi-heif',
+            'reportlab', 'cryptography', 'cffi', 'charset-normalizer', 'pycparser', 'pyinstaller')
 
 
 def collect_notices(folder: Path):
@@ -47,7 +48,7 @@ def main():
                '--name', name, '--paths', str(ROOT / 'src'),
                '--specpath', str(ROOT / 'build'), '--distpath', str(ROOT / 'dist'),
                '--workpath', str(ROOT / 'build' / 'pyinstaller'),
-               '--collect-all', 'pi_heif', '--collect-all', 'pypdfium2',
+               '--collect-all', 'pi_heif', '--collect-all', 'pypdfium2', '--collect-data', 'reportlab',
                '--exclude-module', 'pytest', '--exclude-module', 'PySide6.QtNetwork']
     if sys.platform == 'win32':
         command.append('--windowed')

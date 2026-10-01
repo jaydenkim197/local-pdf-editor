@@ -13,7 +13,7 @@ from PIL import Image, ImageOps
 from pypdf import PdfReader, PdfWriter
 
 from .output import write_output
-from .tools import Options, TOOL_BY_ID
+from .tools import M2_IDS, Options, TOOL_BY_ID
 
 pi_heif.register_heif_opener()
 MAX_PIXELS = 40_000_000
@@ -75,11 +75,14 @@ def parse_pages(text: str, count: int) -> list[int]:
     return pages
 
 
-def read_pdf(stack: ExitStack, path: Path) -> PdfReader:
+def read_pdf(stack: ExitStack, path: Path, password: str | None = None) -> PdfReader:
     stream = stack.enter_context(path.open("rb"))
     reader = PdfReader(stream, strict=True)
     if reader.is_encrypted:
-        raise ValueError("Encrypted PDFs are not supported in M1.")
+        if password is None:
+            raise ValueError("Encrypted PDFs are not supported in M1.")
+        if not reader.decrypt(password):
+            raise ValueError("Incorrect PDF password.")
     if not reader.pages:
         raise ValueError("The PDF has no pages.")
     return reader
@@ -276,7 +279,10 @@ def run_job(tool_id: str, files: list[Path], folder: Path, options: Options = Op
             if path.suffix.lower() not in tool.extensions:
                 raise ValueError(f"Unsupported file type: {path.name}")
         ctx.progress(0, "Processing locally…")
-        if tool_id in ("pdf_merge", "pdf_import", "pdf_reorder", "pdf_delete"):
+        if tool_id in M2_IDS:
+            from .m2 import process_m2
+            process_m2(tool_id, files, folder, options, ctx)
+        elif tool_id in ("pdf_merge", "pdf_import", "pdf_reorder", "pdf_delete"):
             process_pdf(tool_id, files, folder, options, ctx)
         elif tool_id == "image_pdf":
             images_pdf(files, folder, ctx)

@@ -10,7 +10,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from local_pdf_editor.app import Window
-from local_pdf_editor.tools import TOOLS
+from local_pdf_editor.tools import M1_TOOLS, TOOLS
 
 
 @pytest.fixture(scope='module')
@@ -51,7 +51,7 @@ def make_pdf(path):
 
 
 def test_cards_categories_and_shared_workspace(window, app):
-    window.category.setCurrentText('PDF Security')
+    window.category.setCurrentText('PDF Optimization')
     assert window.empty.isVisible()
     assert all(not card.isVisible() for _, card in window.card_widgets)
     window.category.setCurrentText('All')
@@ -61,7 +61,7 @@ def test_cards_categories_and_shared_workspace(window, app):
         assert window.tool.id == tool.id
         assert window.stack.currentWidget() is window.workspace
         QTest.mouseClick(window.back_button, Qt.MouseButton.LeftButton)
-    assert len(TOOLS) == 14
+    assert len(M1_TOOLS) == 14
 
 
 def test_gui_drag_drop_resize_job_and_open_local(window, app, tmp_path, monkeypatch):
@@ -159,7 +159,7 @@ def test_hidden_resize_fields_do_not_break_pdf_tool(window, tmp_path):
     assert window.get_options().percent == 100
 
 
-@pytest.mark.parametrize('tool', [t.id for t in TOOLS])
+@pytest.mark.parametrize('tool', [t.id for t in M1_TOOLS])
 def test_every_tool_through_shared_gui(window, app, tmp_path, tool):
     pdf = tmp_path / 'input.pdf'
     other = tmp_path / 'other.pdf'

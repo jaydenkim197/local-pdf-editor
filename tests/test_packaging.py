@@ -12,3 +12,5 @@ def test_packaging_collects_real_native_notices(tmp_path):
     assert (tmp_path / 'LGPL-3.0.txt').is_file()
     assert list((tmp_path / 'pypdfium2').rglob('pdfium.txt'))
     assert list((tmp_path / 'pi-heif').rglob('LICENSES_bundled.txt'))
+    assert list((tmp_path / 'reportlab').rglob('bitstream-vera-license.txt'))
+    assert list((tmp_path / 'cryptography').rglob('LICENSE.APACHE'))

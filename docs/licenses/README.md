@@ -13,3 +13,5 @@ Before a public binary release:
 - Choose the application's own license explicitly when release requirements are known.
 
 See [ADR-0001](../decisions/ADR-0001-m1-stack.md). Creating a package or collecting these files does not certify legal compliance.
+
+M2 adds ReportLab (BSD, bundled Vera font notice retained) and cryptography (Apache-2.0 OR BSD-3-Clause), with their dependency notices/version metadata collected by packaging. Inspect actual Windows native artifacts, including the crypto provider's third-party notices, before public distribution. Optional user-supplied TTF fonts are not redistributed by this repository; they must permit embedding in generated PDFs. See [ADR-0002](../decisions/ADR-0002-m2-pdf-operations.md).
