@@ -257,6 +257,25 @@ def test_ocr_prerequisite_errors_are_actionable(tmp_path, options, fragment):
     assert not result.outputs and fragment in result.errors[0]
 
 
+@pytest.mark.parametrize('version,accepted', [
+    ('tesseract 5.5.0', True), ('tesseract v5.5.0.20241111', True),
+    ('tesseract 4.1.1', False), ('unrecognized version', False),
+])
+def test_tesseract_version_formats(tmp_path, monkeypatch, version, accepted):
+    from local_pdf_editor import m3
+    engine = tmp_path / 'tesseract.exe'
+    engine.touch()
+    monkeypatch.setattr(m3, 'run_engine', lambda command, *_args, **_kwargs:
+                        version if '--version' in command else 'List of available languages:\neng\n')
+    options = Options(tesseract_path=str(engine))
+    context = Context(Event(), lambda *_: None, Result())
+    if accepted:
+        assert m3.tesseract_command(options, context) == [str(engine.resolve())]
+    else:
+        with pytest.raises(ValueError, match='Tesseract 5 is required'):
+            m3.tesseract_command(options, context)
+
+
 def test_ocr_child_cancellation_and_timeout_cleanup():
     ctx = Context(Event(), lambda *_: None, Result())
     timer = Timer(.2, ctx.cancel.set); timer.start()
@@ -276,7 +295,10 @@ def test_local_html_text_table_image_and_multipage(tmp_path, app):
     reader = PdfReader(output)
     assert len(reader.pages) > 1
     text = ' '.join(reader.pages[0].extract_text().split())
-    assert 'LOCAL HTML' in text and 'Cell value' in text
+    assert 'LOCAL HTML' in text and 'Cell value' in text, {
+        'fonts': str(reader.pages[0]['/Resources'].get('/Font'))[:1200],
+        'content': reader.pages[0].get_contents().get_data()[:1800],
+    }
     assert reader.pages[0].images
     with pixels(output) as image:
         assert any(r > 200 and g < 50 and b < 50 for r, g, b in image.get_flattened_data())
@@ -295,7 +317,10 @@ def test_html_script_is_not_executed(tmp_path, app):
     source.write_text('<h1>VISIBLE</h1><script>document.write("EXECUTED")</script>')
     output = job('html_pdf', [source], tmp_path)
     text = PdfReader(output).pages[0].extract_text()
-    assert 'VISIBLE' in text and 'EXECUTED' not in text
+    assert 'VISIBLE' in text and 'EXECUTED' not in text, {
+        'fonts': str(PdfReader(output).pages[0]['/Resources'].get('/Font'))[:1200],
+        'content': PdfReader(output).pages[0].get_contents().get_data()[:1800],
+    }
 
 
 @pytest.mark.parametrize('tool', ['pdf_compress', 'pdf_repair', 'pdf_pdfa', 'pdf_ocr'])

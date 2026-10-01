@@ -6,7 +6,7 @@ Last updated: 2026-10-02 (Asia/Seoul)
 
 M1, M2 and M3 implementation is complete for the offline Windows-first PDF/image utility in [product-spec.md](product-spec.md). Cloud processing/offscreen/native package validation is complete; actual Windows runtime validation remains pending. OCR integrates installed local Tesseract 5; PDF/A is image-based PDF/A-1b and HTML is basic local rich text.
 
-Windows readiness is BLOCKED pending CI diagnosis: the public [run for ab917cb](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36889443508) shows source pytest failures on both hosted Windows and Ubuntu. GitHub API access is denied by the Cloud proxy; the permitted web page exposes results but requires login for detailed logs. The workflow now records pytest failure details/summary/JUnit and retains a Windows development ZIP only after source and packaged checks pass. No successful Windows build is yet observed.
+Windows readiness is BLOCKED pending corrected CI verification. The public [diagnostic run](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36914991351) exposed Ubuntu's missing libEGL, Windows Tesseract's rejected version format and missing default HTML font/text. The fixes add Qt OS prerequisites, accept Tesseract's `v5` spelling and reuse bundled Vera for HTML. The workflow records failures/JUnit, checks a relocated frozen package with native Windows Qt at 100%/150%, Python-free PATH and outbound blocking, including English/Korean OCR, and retains a checksummed development ZIP only on success. No successful Windows build is yet observed at this checkpoint.
 
 ## Status Model
 

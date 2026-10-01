@@ -18,12 +18,17 @@ jobs:
         with:
           python-version: '3.12'
       - if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng libegl1 libopengl0
       - if: runner.os == 'Windows'
         shell: pwsh
         run: |
           choco install tesseract --yes --no-progress
           "C:\Program Files\Tesseract-OCR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $version = & 'C:\Program Files\Tesseract-OCR\tesseract.exe' --version 2>&1 | Out-String
+          "::notice title=Installed Windows OCR engine::$($version.Trim().Split("`n")[0])"
+          $korean = 'C:\Program Files\Tesseract-OCR\tessdata\kor.traineddata'
+          Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/kor.traineddata' -OutFile $korean
+          if ((Get-FileHash $korean -Algorithm SHA256).Hash.ToLowerInvariant() -ne '6b85e11d9bbf07863b97b3523b1b112844c43e713df8b66418a081fd1060b3b2') { throw 'Korean data checksum mismatch.' }
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m pip install --no-build-isolation --no-deps -e .
       - name: Run full source suite
@@ -44,9 +49,15 @@ jobs:
         run: python scripts/package_app.py
       - if: runner.os == 'Windows'
         shell: pwsh
-        run: |
-          $process = Start-Process -FilePath "dist/LocalPdfUtilities/LocalPdfUtilities.exe" -ArgumentList "--smoke-test", "--heic-fixture", "tests/fixtures/sample.heic", "--ocr-smoke" -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "Packaged smoke failed: $($process.ExitCode)" }
+        run: ./scripts/verify_windows_package.ps1
+      - name: Retain frozen Windows evidence
+        if: always() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frozen-Windows-${{ github.sha }}
+          path: reports/windows-package-*.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Prepare Windows development package
         if: runner.os == 'Windows'
         shell: pwsh

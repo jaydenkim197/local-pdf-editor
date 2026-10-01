@@ -220,7 +220,7 @@ def tesseract_command(opt, ctx):
         raise ValueError('Install local Tesseract 5, or choose its executable. No engine or data is downloaded by this app.')
     executable = str(Path(executable).resolve())
     version = run_engine([executable, '--version'], ctx, timeout=15)
-    if not re.search(r'tesseract 5\.', version):
+    if not re.search(r'(?im)^tesseract v?5\.', version):
         raise ValueError('Tesseract 5 is required.')
     command = [executable]
     data = Path(opt.tessdata_path).expanduser().resolve() if opt.tessdata_path else Path(executable).parent / 'tessdata'
@@ -271,8 +271,9 @@ def ocr_pdf(path, folder, opt, ctx):
 
 
 def html_pdf(path, folder, opt, ctx):
+    import reportlab
     from PySide6.QtCore import QMarginsF, QSizeF, QUrl
-    from PySide6.QtGui import QGuiApplication, QImage, QPageLayout, QPageSize, QPdfWriter, QTextDocument
+    from PySide6.QtGui import QFont, QFontDatabase, QGuiApplication, QImage, QPageLayout, QPageSize, QPdfWriter, QTextDocument
 
     if QGuiApplication.instance() is None:
         raise ValueError('HTML printing requires the application GUI to be initialized.')
@@ -298,6 +299,14 @@ def html_pdf(path, folder, opt, ctx):
                 return None
 
     document = LocalDocument()
+    # Headless Windows Qt can have no usable default font. Reuse the bundled,
+    # embeddable TrueType face instead of producing pages with missing text.
+    family = 'Bitstream Vera Sans'
+    if family not in QFontDatabase.families():
+        font = Path(reportlab.__file__).parent / 'fonts' / 'Vera.ttf'
+        if QFontDatabase.addApplicationFont(str(font)) < 0:
+            raise ValueError('The bundled HTML font could not be loaded.')
+    document.setDefaultFont(QFont(family, 10))
     document.setBaseUrl(QUrl.fromLocalFile(str(path.parent) + '/'))
     document.setHtml(path.read_text(encoding='utf-8-sig'))
     def write(output):

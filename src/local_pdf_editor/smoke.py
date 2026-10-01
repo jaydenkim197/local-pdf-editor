@@ -1,6 +1,8 @@
 """Exercise actual native dependencies inside a built executable."""
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import os
+import re
 import sys
 
 from PIL import Image
@@ -96,6 +98,20 @@ def smoke_test():
             recognized = check('pdf_ocr', archival, Options(dpi=144))
             if 'SMOKE' not in PdfReader(recognized[0]).pages[0].extract_text():
                 raise RuntimeError('OCR searchable text missing')
+        if '--korean-ocr-smoke' in sys.argv:
+            from .m2 import font_for
+            korean = root / 'korean.pdf'
+            font = Path(os.environ.get('WINDIR', 'C:/Windows')) / 'Fonts' / 'malgun.ttf'
+            canvas = Canvas(str(korean), pagesize=(400, 240))
+            canvas.setFont(font_for('한글 문서', str(font)), 36)
+            canvas.drawString(20, 155, '한글 문서')
+            canvas.setFont('Helvetica', 28)
+            canvas.drawString(20, 90, 'LOCAL OCR TEST')
+            canvas.showPage(); canvas.save()
+            recognized = check('pdf_ocr', [korean], Options(dpi=200, ocr_language='eng+kor', ocr_psm=6))
+            text = PdfReader(recognized[0]).pages[0].extract_text()
+            if '한글문서' not in re.sub(r'\s+', '', text) or 'LOCAL OCR TEST' not in ' '.join(text.split()):
+                raise RuntimeError('Korean/English OCR searchable sample text missing')
         window = Window()
         window.select_tool('image_resize')
         window.add_files([image])

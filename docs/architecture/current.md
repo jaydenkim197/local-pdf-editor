@@ -51,6 +51,12 @@ PDF/A composes the existing source-free raster writer with a new PDF 1.4 writer:
 
 OCR writes visible pages into a private temporary directory, executes local Tesseract 5 with fixed argv and no shell, checks installed data, waits with cancellation/timeout, combines its fresh image/text pages, and cleans intermediate files. Tesseract/model/native DLLs are user-installed external prerequisites, not redistributed by packaging. No downloads occur in the app.
 
-HTML uses a QTextDocument subclass with resource access limited to JPEG/PNG within the input directory and prints directly into Qt Gui QPdfWriter on the shared worker. Fonts/GUI are initialized by the application. This avoids QPrinter's service queries; no browser/JS/network renderer exists. Package data includes the ICC profile and notices/engine instructions.
+HTML uses a QTextDocument subclass with resource access limited to JPEG/PNG within the input directory and prints directly into Qt Gui QPdfWriter on the shared worker. GUI is initialized by the application; HTML registers the already bundled, embeddable Vera TrueType font as its default, avoiding missing text when headless Windows Qt has no default face. Local system fonts still supply other requested glyphs/families. This avoids QPrinter's service queries; no browser/JS/network renderer exists. Package data includes the ICC profile and notices/engine instructions.
 
 See [ADR-0003](../decisions/ADR-0003-m3-local-engines.md) and [m3-engines.md](../m3-engines.md). Windows behavior remains unverified until observed.
+
+## Windows verification and development artifacts
+
+Actions runs existing source tests and executable smoke. Standard-library JUnit reporting exposes actual failures as annotations/summary and retains result files. The Windows package check relocates the whole onedir bundle into a Unicode temporary directory, removes Python/Qt developer environment paths, enables temporary per-executable outbound firewall blocking and runs the native Windows backend at scale 1/1.5. It restores the host's environment/firewall configuration afterwards. This isolates runtime dependencies but is not a physical clean-machine or manual Explorer/display validation.
+
+The frozen entrypoint can record `--smoke-report` JSON and exit nonzero on smoke errors without a windowed crash dialog. CI retains those results and a SHA-256 Windows ZIP only after checks pass. OCR/model preparation occurs on the runner; Tesseract and Korean data remain external and are not included in the ZIP.
