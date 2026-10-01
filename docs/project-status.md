@@ -17,8 +17,9 @@ Implement the Windows-first offline PDF/image utility M1 defined in [product-spe
 | Repository-local skills | VERIFIED | Both SKILL.md files match the supplied ZIP byte for byte |
 | Baseline instructions and documentation | VERIFIED | Required files and local skill references checked |
 | Application foundation | IMPLEMENTED | Python project and pinned dependencies; editable installation and offscreen Qt startup verified |
-| M1 processors and GUI | PLANNED | See implementation-plan.md |
-| Application tests | PLANNED | Functional implementation pending |
+| M1 PDF/image processors | VERIFIED | 38 Cloud functional tests passed; output files reopened and inspected |
+| Shared GUI | PLANNED | See implementation-plan.md |
+| Application tests | VERIFIED | Processor suite executed in Linux Cloud; Windows runtime pending |
 | Windows runtime and packaging | PLANNED | Requires Windows machine validation |
 | Optional agent tooling | DEFERRED | Add only when concrete project needs justify it |
 
@@ -29,9 +30,8 @@ Implement the Windows-first offline PDF/image utility M1 defined in [product-spe
 ## Known Limitations
 - Git checkpoint history and Cloud environment publication are separate; a Git push does not publish the environment configuration.
 - Skill file availability and integrity are verified; discovery in a new Cloud task has not been tested.
-- No M1 application behavior has been implemented or verified yet.
+- M1 processors have been verified in Linux Cloud; GUI and Windows behavior are not yet verified.
 
 ## Next Actions
-1. Implement and verify PDF/image processors.
-2. Implement the shared Qt workspace and Windows packaging.
-3. Record Cloud and Windows validation separately.
+1. Implement the shared Qt workspace and Windows packaging.
+2. Record Cloud and Windows validation separately.

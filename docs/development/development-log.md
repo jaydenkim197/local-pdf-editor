@@ -23,3 +23,11 @@ Define the PDF editor MVP and target platform before selecting dependencies.
 - Installed pinned wheels and the editable project; checked dependency consistency and offscreen Qt startup.
 - Official documentation websites returned proxy 403; research used publisher wheel metadata, license files and runtime probes.
 - Windows runtime remains unverified. Next: processors and shared UI.
+
+## 2026-10-01 — M1 processing layer
+
+- Implemented the tool registry, job results/progress/cancellation, collision-safe temporary output commits, PDF structural operations/rendering, image PDF export, conversion, resize, and HEIC decode.
+- Preserved originals and completed outputs on partial batch failures or cancellation; normalized image orientation and JPEG transparency.
+- Added bounded render/resize sizes and encrypted/corrupt input errors.
+- 38 Cloud tests passed, covering real PDFs and a licensed HEIC fixture, page order/rotation/reopen, dimensions/formats/EXIF, batches, invalid options, partial failures, cancellation, Unicode names and concurrent output collisions.
+- Corrected a PDFium page lifetime API mismatch observed in the first rendering probe. Windows runtime remains pending.
