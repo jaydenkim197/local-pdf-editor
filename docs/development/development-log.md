@@ -51,3 +51,4 @@ Define the PDF editor MVP and target platform before selecting dependencies.
 - Linux onedir/frozen M1/M2 smoke passed; Windows x64 additions downloaded but not executed. Actual Windows runtime and public distribution compliance remain pending; exact next task is Windows M1/M2 source/packaged validation.
 
 - Final geometry review preserved original rotation/annotation coordinates for crop/overlays; rotated form crop and signature tests verify unchanged form pixels outside the edited region.
+- Re-executed the retained Cloud install script successfully with M2 pins; saved updated start instructions in the environment draft. Updated README usage/limits and CI naming for M1/M2; no Windows CI result or environment publication is claimed.

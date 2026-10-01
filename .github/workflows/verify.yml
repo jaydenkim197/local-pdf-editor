@@ -1,4 +1,4 @@
-name: Verify M1
+name: Verify PDF utilities
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
