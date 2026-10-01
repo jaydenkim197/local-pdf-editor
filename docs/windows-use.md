@@ -2,6 +2,8 @@
 
 ## 다운로드와 실행
 
+[검증된 Windows 빌드와 다운로드](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36919001214): Windows/Linux 각각 155개 테스트와 PDF/A 독립 검증 4건, Windows EXE 검사가 통과한 실행입니다. Windows 아티팩트는 58.5 MB입니다.
+
 1. GitHub에 로그인하고 [Windows 검증 워크플로](https://github.com/jaydenkim197/local-pdf-editor/actions/workflows/verify.yml)를 엽니다.
 2. 성공한 실행의 **Artifacts**에서 `LocalPdfUtilities-Windows-x64-커밋SHA`를 내려받습니다. 소스 테스트와 EXE 검사를 통과해야 이 패키지가 생성됩니다. 실패한 실행에는 정상 패키지가 없습니다.
 3. 내려받은 아티팩트 압축을 풀고, 그 안의 `LocalPdfUtilities-Windows-x64.zip`도 풉니다.

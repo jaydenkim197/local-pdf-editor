@@ -6,7 +6,16 @@
 
 Corrected hosted failures from [diagnostic run 36914991351](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36914991351): Ubuntu libEGL missing, Windows Tesseract `v5` format rejected, and HTML missing its default text font. Added OS libraries, supported `v5` identification and reused licensed bundled Vera. Updated Cloud full suite: 155 passed, including four independent Preflight specimens; rebuilt Linux frozen smoke/report also passed.
 
-Independent Preflight is now configured in both CI platforms with Java 17, HTTPS and the pinned jar SHA-256; Windows results from that strengthened run are pending. OCR Korean data is pinned/checksummed and prepared only on the runner, not shipped. [Windows download/use](windows-use.md) covers the successful development artifact. This hosted check isolates Python/Qt paths but cannot prove a physical machine has no other installed components. Manual Explorer/dialogs/display/real-document and clean-PC checks and public-release compliance remain pending.
+Final strengthened [run 36919001214](https://github.com/jaydenkim197/local-pdf-editor/actions/runs/36919001214), commit `578a042339abee0bbb12019a9c6dc0ec01376f7f`, passed on both hosted platforms. Public annotations separately confirm **155 cases, 0 failures/errors/skips and four PDF/A specimen tests with real independent Preflight enabled** on each platform. Java 17 and the HTTPS-downloaded validator's pinned SHA-256 were enforced. Native frozen Windows checks again passed at scales 1/1.5 with real English/Korean OCR, Unicode relocation, no Python PATH and outbound blocking.
+
+| Final artifact | Observed value |
+|---|---|
+| Windows package | `LocalPdfUtilities-Windows-x64-578a042339abee0bbb12019a9c6dc0ec01376f7f`, 58.5 MB Actions artifact |
+| Inner `LocalPdfUtilities-Windows-x64.zip` SHA-256 | `c63b872c00ad760bc659c8407e1df94288fb688dc77e1b92c45e5ebd282d6a51` |
+| Actions envelope digest | `d0dd0a767726d8afc28a0d9697c446a758a489c07ef5022e784b07b870954e8e` |
+| Retained evidence | `verification-Linux-*`, `verification-Windows-*` JUnit; `frozen-Windows-*` JSON |
+
+OCR Korean data is pinned/checksummed and prepared only on the runner, not shipped. [Windows download/use](windows-use.md) covers the successful development artifact. This hosted check isolates Python/Qt paths but cannot prove a physical machine has no other installed components. Manual Explorer/dialogs/display/real-document and clean-PC checks and public-release compliance remain pending. Nonblocking CI warnings concern deprecated Actions versions/Node 20; no application/test error or skip occurred in the final run.
 
 ## Requirements Audit — 2026-10-02 (Asia/Seoul)
 
@@ -30,23 +39,22 @@ Final observed checks: **151 passed, 0 errors/failures/skips** with all four ind
 
 Cloud is not Windows runtime verification. Offscreen tests do not verify desktop display, Explorer integration, OS dialogs, DPI scaling, display drivers, or native Windows DLL loading.
 
-## Required Windows Validation — Pending
+## Required Personal Windows / Clean-Machine Validation — Pending
 
-Clone main on Windows x64 with Python 3.12; follow README installation commands. Install Tesseract 5 with English data first for the current full suite, as described in [m3-engines.md](m3-engines.md).
+Hosted source/native automation above is complete. On a personal Windows x64 PC without Python, use the verified ZIP from [windows-use.md](windows-use.md) and install local OCR prerequisites when needed. The source commands below are optional developer reproduction; the real desktop/clean-machine checks remain pending for the user's PC.
 
-1. Run `.venv\Scripts\python.exe -m pytest -q`; record platform, versions, count/results.
-2. Run `.venv\Scripts\python.exe -m local_pdf_editor`. Confirm startup, cards at 100%/150% scaling, keyboard navigation, dialogs and Explorer drop with Unicode paths.
+1. Optional source reproduction: install Python 3.12/Tesseract 5/English and run `.venv\Scripts\python.exe -m pytest -q`; record platform, versions, count/results. An end user does not need Python for the package.
+2. Run `LocalPdfUtilities.exe` (or `.venv\Scripts\python.exe -m local_pdf_editor` for source debugging). Confirm startup, cards at 100%/150% scaling, keyboard navigation, dialogs and Explorer drop with Unicode paths.
 3. Use real multi-page PDFs: merge reversed inputs, split selected pages, reorder all pages, delete, import a range and rotate. Reopen in an independent Windows viewer; confirm count/order/rotation and unchanged originals.
 4. Export JPEG/PNG and import images to PDF; check dimensions/visual content, including filled text/check/radio form appearances. Corrupt/encrypted inputs must show useful errors without incomplete output.
 5. Convert an iPhone HEIC and fixture; convert JPEG/PNG; resize batches at all presets/custom %, aspect-preserving box and stretched dimensions. Check dimensions and EXIF-rotated photo orientation.
 6. Re-run into a populated folder; confirm no overwrite. Cancel/close during jobs; completed outputs remain and incomplete output/temp files are cleaned after normal cancellation. Confirm output folder choice and Open output/folder work.
-7. Build `.venv\Scripts\python.exe scripts\package_app.py`; run `dist\LocalPdfUtilities\LocalPdfUtilities.exe --smoke-test --heic-fixture tests\fixtures\sample.heic`. Copy the entire onedir folder to a clean Windows machine without Python and repeat PDF rendering/HEIC conversion offline. Verify Qt plugin and codec DLL discovery.
+7. Use the verified onedir package; rebuilding with `.venv\Scripts\python.exe scripts\package_app.py` is optional for developers. Copy the entire folder to a clean Windows machine without Python and repeat real PDF/image/HEIC operations offline, including OCR after local prerequisites are installed. Verify Qt plugin and codec DLL discovery.
 8. Record evidence here and update Windows status only for observed checks; resolve failures before claiming Windows readiness.
 
 ## Not Executed / Not Claimed
 
-- Actual Windows GUI, Explorer dialogs/drop, Windows frozen executable and clean-machine offline startup.
-- GitHub Actions results (workflow provided; run status not inspected).
+- Manual personal Windows GUI, Explorer dialogs/drop and physical clean-machine offline startup. Hosted source/native results are recorded above.
 - Public binary compliance, signing, installer and HEVC patent review.
 - Linux package size is not a Windows measurement.
 
@@ -77,7 +85,7 @@ The redaction guarantee applies to marked visible pixels and source structures e
 
 M2 diagnostics corrected during verification: pypdf's writer context entry reset pre-cloned content, so cloning now occurs inside the context; direct radio-widget flattening collided on appearance resources, so flattening renders the filled document into a fresh lossless PDF. Tests validate both corrected outputs.
 
-## Additional Windows M2 Checks — Pending
+## Personal Windows M2 Checks — Pending
 
 1. Re-run the full suite on Windows, then source GUI and packaged smoke with all M2 additions. Verify bundled Vera font, optional Korean TTF, AES provider and PDFium/Qt DLL loading.
 2. Exercise crop/overlays on landscape, rotated and previously cropped PDFs. Independently confirm crop bounds, watermark opacity, sequential numbers and visible signature placement.
@@ -85,7 +93,7 @@ M2 diagnostics corrected during verification: pypdf's writer context entry reset
 4. Mark redaction regions across pages, including text/images and form content. Inspect outputs visually and with an independent text/object extraction tool: removed text must be unselectable, metadata/attachments/forms absent, and selected pixels erased. Check fractional page sizes/region edges at low/high DPI, rotated pages and input replacement before sharing real sensitive files. Include the audit's 100.01 × 80.01 point edge specimen; recreate affected outputs made before the audit fix.
 5. Compare identical/changed/differently sized/missing-page PDFs and inspect report/highlights. Fill representative standard AcroForms, reopen editable values and flattened appearances in an independent viewer. Record unsupported XFA/Unicode/multi-select limits accurately.
 
-These checks and actual Windows CI results have not been observed in this Cloud machine. At the M2 checkpoint no M3 verification had been performed; the later M3 evidence follows.
+At the M2 checkpoint these Windows/CI checks and M3 verification had not been observed. The later hosted Windows source/native evidence at the top supersedes the automated portion; actual personal-machine/manual checks remain pending.
 
 ## M3 Cloud Evidence — 2026-10-01
 
@@ -120,11 +128,13 @@ Preflight is developer-only Java tooling, not an app dependency or packaged runt
 
 Cloud setup retains the independently checksum-verified Preflight jar in ignored `.cache/tools`. Re-executed installation and cached-tool checks passed. Later fresh Maven requests returned HTTP 429; a new download depends on repository availability and must still pass the pinned checksum. This does not affect installed conformance validation or application runtime. Updated installer/start instructions are saved as a configuration draft, not a published environment.
 
-## Additional Windows M3 Checks — Pending
+## Personal Windows M3 Checks — Pending
+
+Hosted full-suite/native sample/conformance automation passed as recorded above; these real-document/user-machine checks remain to be performed.
 
 1. Install Tesseract 5/English/Korean/pdf.ttf, check executable/`--list-langs`, run full pytest/source/frozen `--ocr-smoke`. Inspect DLL/data discovery with spaces/Unicode paths and explicit tessdata. Without an engine, other tools must work and OCR must show an actionable error.
 2. Copy the package to a clean machine without Python and disconnect networking. With local OCR prerequisites, process English/Korean scans, review text accuracy, dimensions/multipage output, progress, child cancel and timeout.
 3. Compress text/form/photo/transparent/CMYK/ICC/hidden-layer PDFs, compare sizes/text/forms/colors/layer visibility and unchanged originals in an independent viewer. ICC/calibrated images must retain their original interpretation. Already optimized files need not shrink. Repair real broken cross-references; missing content is not recoverable.
 4. Convert rotated/cropped/form/encrypted/color documents to PDF/A-1b, inspect visuals and run independent Preflight/another validator. Confirm bundled ICC, unencrypted output and removed source interactive structures. No PDF/A-1a/2/3/accessibility claim.
 5. Print local UTF-8 Korean/English HTML with images/tables/multiple pages. Confirm fonts/A4/margins, no printer-service/network request, blocked-resource errors and native Qt behavior. Modern web/CSS/JS fidelity is outside scope.
-6. Inspect Windows CI results when available; CI commands are provided but no run result was observed. Complete earlier LGPL/HEIC/crypto/app-license public release review before distributing binaries; this package does not bundle Tesseract native binaries/models.
+6. Check the recorded Windows CI results when selecting a package, then complete earlier LGPL/HEIC/crypto/app-license public release review before a public release. This development package does not bundle Tesseract native binaries/models.

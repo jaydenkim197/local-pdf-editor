@@ -53,7 +53,7 @@ OCR writes visible pages into a private temporary directory, executes local Tess
 
 HTML uses a QTextDocument subclass with resource access limited to JPEG/PNG within the input directory and prints directly into Qt Gui QPdfWriter on the shared worker. GUI is initialized by the application; HTML registers the already bundled, embeddable Vera TrueType font as its default, avoiding missing text when headless Windows Qt has no default face. Local system fonts still supply other requested glyphs/families. This avoids QPrinter's service queries; no browser/JS/network renderer exists. Package data includes the ICC profile and notices/engine instructions.
 
-See [ADR-0003](../decisions/ADR-0003-m3-local-engines.md) and [m3-engines.md](../m3-engines.md). Windows behavior remains unverified until observed.
+See [ADR-0003](../decisions/ADR-0003-m3-local-engines.md) and [m3-engines.md](../m3-engines.md). Hosted Windows source and native frozen behavior, including independent PDF/A specimens, is now verified; personal-machine/manual desktop checks remain pending.
 
 ## Windows verification and development artifacts
 

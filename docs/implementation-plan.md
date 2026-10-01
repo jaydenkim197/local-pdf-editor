@@ -6,7 +6,7 @@
 4. Add Windows onedir packaging and license collection; verify Cloud code, UI, build, and Windows wheel availability.
 5. Update evidence and status, create logical commits, push to main.
 
-M1 implementation and Cloud validation completed. Windows runtime/package validation remains pending until observed on Windows.
+M1 implementation, Cloud and hosted Windows automated source/native-package validation completed. Actual personal desktop and physical clean-machine checks remain pending; see verification.md.
 
 ## Authorized M2
 
@@ -16,7 +16,7 @@ M1 implementation and Cloud validation completed. Windows runtime/package valida
 4. Connect shared options, password controls, form editors and page-region selection; run M1/M2 GUI regression tests.
 5. Verify host-native package smoke, update documentation/environment instructions, commit and push.
 
-M2 implementation/Cloud validation completed. Windows M1/M2 runtime and distribution-compliance checks remain separate incomplete tasks.
+M2 implementation, Cloud and hosted Windows automated validation completed. Personal Windows desktop/clean-machine and distribution-compliance checks remain separate incomplete tasks.
 
 ## Authorized M3
 
@@ -26,4 +26,4 @@ M2 implementation/Cloud validation completed. Windows M1/M2 runtime and distribu
 4. Verify real text/images/forms, compression sizes, broken cross-reference recovery, OCR searchable text, independent PDF/A conformance, local HTML resource boundaries, errors/cancellation/batches/collisions, all shared GUI jobs and native package smoke.
 5. Update context/license/setup/verification documents and Cloud instructions, create logical commits, push main.
 
-M3 implementation/Cloud validation completed. Next incomplete work: actual Windows M1/M2/M3 source and packaged validation, including Tesseract/data discovery and offline clean-machine behavior. Public redistribution compliance remains a release prerequisite. No further milestone is authorized.
+M3 implementation, Cloud and hosted Windows automated source/frozen validation completed, including independent Preflight and real English/Korean OCR. Next incomplete work: personal Windows M1/M2/M3 desktop and physical clean-machine validation with OCR prerequisites. Public redistribution compliance remains a release prerequisite. No further milestone is authorized.
